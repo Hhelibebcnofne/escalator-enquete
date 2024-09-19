@@ -20,15 +20,11 @@ legacy_version を使っています．
 
 ここから 2 回目以降不要
 
-asdf 利用者のみ
-
-`asdf install`
+`asdf install` asdf 利用者のみ
 
 `npm install -g pnpm@latest-8`
 
-パッケージ変更時と 1 回目のみ
-
-`pnpm install`
+`pnpm install` パッケージ変更時と 1 回目のみ
 
 ここまで 2 回目以降不要
 
