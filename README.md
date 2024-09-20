@@ -14,7 +14,7 @@ legacy_version を使っています．
 
 普通に nodejs をバージョン指定でインストールしても構いません．
 
-#### 以下実行までの手順
+#### 以下 FE サーバ実行までの手順
 
 `cd ./servers/frontend`
 
@@ -31,3 +31,19 @@ legacy_version を使っています．
 `pnpm run dev`
 
 ### backend
+
+python のバージョンは 3.12.3
+
+rye のインストールを推奨します．
+
+windows であれば，scoop をインストールして，そこに rye をインストールするのを推奨します．
+
+scoop 無しでも使いやすいとは思います．
+
+#### 以下 BE サーバ実行までの手順
+
+`cd ./servers/backend`
+
+`rye sync`
+
+`rye run flask --app src/backend/app.py run` ※変更の可能性大
