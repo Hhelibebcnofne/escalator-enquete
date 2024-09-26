@@ -6,6 +6,8 @@ authors = [
     { name = "Hhelibebcnofne", email = "flyingboat256@gmail.com" }
 ]
 dependencies = [
+    "flask-inertia>=0.9",
+    "flask-vite>=0.5.1",
     "flask>=3.0.3",
 ]
 readme = "README.md"
