@@ -1,13 +1,20 @@
-import { StrictMode } from "react";
+import "vite/modulepreload-polyfill";
 import { createRoot } from "react-dom/client";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createInertiaApp } from "@inertiajs/react";
 import "./index.css";
-import App from "./App";
-
-const router = createBrowserRouter([{ path: "/", element: <App /> }]);
-
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <RouterProvider router={router} />
-  </StrictMode>
-);
+import { StrictMode } from "react";
+document.addEventListener("DOMContentLoaded", () => {
+  createInertiaApp({
+    resolve: (name) => {
+      const pages = import.meta.glob("./pages/**/*.tsx", { eager: true });
+      return pages[`./pages/${name}/index.tsx`];
+    },
+    setup({ el, App, props }) {
+      createRoot(el).render(
+        <StrictMode>
+          <App {...props} />
+        </StrictMode>
+      );
+    },
+  }).then(() => {});
+});

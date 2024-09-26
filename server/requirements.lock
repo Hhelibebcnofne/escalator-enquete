@@ -15,10 +15,18 @@ click==8.1.7
     # via flask
 flask==3.0.3
     # via backend
+    # via flask-inertia
+    # via flask-vite
+flask-inertia==0.9
+    # via backend
+flask-vite==0.5.1
+    # via backend
 itsdangerous==2.2.0
     # via flask
 jinja2==3.1.4
     # via flask
+jsmin==3.0.1
+    # via flask-inertia
 markupsafe==2.1.5
     # via jinja2
     # via werkzeug
