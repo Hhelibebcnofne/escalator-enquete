@@ -1,46 +1,56 @@
+const express = require('express');
+const mqtt = require('mqtt');
+const path = require('path');
+
+const app = express();
+const host = 'broker.emqx.io';
+const port = '1883'; 
+const clientId = `mqtt_${Math.random().toString(16).slice(3)}`;  
+
+const connectUrl = `mqtt://${host}:${port}`;   
 let messageCount1 = 0;
 let messageCount2 = 0;
 
-const clientId = 'mqtt_subscriber' + Math.random().toString(16).substr(2, 8);
-const host = 'ws://broker.emqx.io:8083/mqtt';
-
-const options = {
-    keepalive: 60,
-    clientId: clientId,
-    protocolId: 'MQTT',
-    protocolVersion: 4,
-    clean: true, // 要検討：再接続時どうするか
-    reconnectPeriod: 1000,
-    connectTimeout: 30 * 1000,
-};
-
-console.log('Connecting mqtt client for Subscriber');
-
-const client = mqtt.connect(host, options);
-
-client.on("connect", () => {
-    console.log("Subscriber connected to broker");
-    // 動作確認用だからemqxに同じような条件で同じトピックあったら非常に問題
-    client.subscribe('presence1', (err) => {
-        if (!err) {
-            console.log("Subscribed to presence1 topic");
-        }
-    });
-    client.subscribe('presence2', (err) => {
-        if (!err) {
-            console.log("Subscribed to presence2 topic");
-        }
-    });
+const client = mqtt.connect(connectUrl, {
+  clientId,
+  clean: true,
+  connectTimeout: 4000,
+  username: 'emqx',
+  password: 'subscrib',
+  reconnectPeriod: 1000,
 });
 
-client.on("message", (topic, message) => {
-    console.log(`Received message from topic: ${topic}`);
-    // 要検討：トピックで分けるかメッセージifで分けるか
-    if (topic === 'presence1') {
-        messageCount1++;
-        document.getElementById('messageCount1').innerHTML = "右カウント数: " + messageCount1;
-    } else if (topic === 'presence2') {
-        messageCount2++;
-        document.getElementById('messageCount2').innerHTML = "左カウント数: " + messageCount2;
-    }
+const topic = '/nodejs/mqtt';
+
+client.on('connect', () => {
+  console.log('Connected to MQTT Broker');
+
+  client.subscribe([topic], () => {
+    console.log(`Subscribed to topic '${topic}'`);
+  });
+});
+
+client.on('message', (topic, payload) => {
+  let payload_txt = payload.toString();
+  if (payload_txt === '0') {
+    messageCount1++;
+    console.log("右カウント数: ", messageCount1);
+  } else if (payload_txt === '1') {
+    messageCount2++;
+    console.log("左カウント数: ", messageCount2);
+  }
+});
+
+// 静的ファイル（HTML）を提供
+app.use(express.static(path.join(__dirname, 'public')));
+
+// カウント数を提供するエンドポイント
+app.get('/counts', (req, res) => {
+  res.json({ messageCount1, messageCount2 });
+});
+
+// サーバーを起動
+const webPort = 3000;
+app.listen(webPort, () => {
+  console.log(`Server is running on http://localhost:${webPort}`);
 });
