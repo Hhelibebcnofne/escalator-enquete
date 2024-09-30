@@ -1,18 +1,8 @@
-from flask import Flask, send_from_directory
-from flask_vite import Vite
-from flask_inertia import Inertia
+from flask_app import create_app
+from flask import send_from_directory
 from flask_inertia import render_inertia
 
-SECRET_KEY = "secret!"
-INERTIA_TEMPLATE = "base.html"
-
-app = Flask(__name__)
-app.config.from_object(__name__)
-app.config["JSON_AS_ASCII"] = False
-vite = Vite(app)
-
-inertia = Inertia()
-inertia.init_app(app)
+app = create_app()
 
 
 @app.route("/")
