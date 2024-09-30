@@ -15,12 +15,3 @@
 #define PROGRAM_STS_RUNNING (1)
 // プログラム内部状態：終了
 #define PROGRAM_STS_STOPPED (3)
-
-
-// プログラム内部状態
-int program_sts = PROGRAM_STS_INIT;
-
-// VL53L0X制御用インスタンス
-static VL53L0X distance_sensor;
-// 最新値（距離）
-uint16_t last_distance = 0xFFFF;
