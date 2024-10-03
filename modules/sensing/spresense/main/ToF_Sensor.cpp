@@ -1,23 +1,29 @@
-// VL53L0X用のライブラリのインクルード
-#include <VL53L0X.h>
-#include "define.h"//#includeで呼び出し
-#include "measure_distance.h"
-#include "try_recovering_sensor.h"
-#include "sensor_soft_reset.h"
+// #include <VL53L0X.h>
+#include "ToF_Sensor.h"
+
+
+ToF_Sensor::ToF_Sensor(){
+  VL53L0X distance_sensor;
+}
+
+
 /**
  * @brief setup()関数
  */
-void setup() {
+void ToF_Sensor::setup() {
   // シリアルモニタ出力設定
   Serial.begin(115200);
+
+// プログラム内部状態
+int program_sts = PROGRAM_STS_INIT;
 
   #include "LED.h"
   #include "syokisettei.h"
 
   bool sensor_initialized = distance_sensor.init();
   if (sensor_initialized == false) {
-    int8_t is_recovered = try_recovering_sensor();
-    if (is_recovered == 0) {
+    // int8_t is_recovered = try_recovering_sensor();
+    if (try_recovering_sensor() == 0) {
       // 再初期化処理
       sensor_soft_reset();
       sensor_initialized = distance_sensor.init();
@@ -41,37 +47,52 @@ void setup() {
 
 
 
+// void ToF_Sensor::loop() {
+//   switch (program_sts){
+//     case PROGRAM_STS_RUNNING:
+//     // プログラム内部状態：起動中
+//       measure_distance();//距離測定、最新値更新
+//     // break;
+    
+//     // case PROGRAM_STS_STOPPED:
+//     // プログラム内部状態：終了
+//     // break;
+
+//     }
+
+//   // 次のループ処理まで100ミリ秒待機
+//   delay(100);
+// }
+
+
+
+
 /**
  * @brief loop()関数
  */
-void loop() {
-  switch (program_sts){
-    case PROGRAM_STS_RUNNING:
-    // プログラム内部状態：起動中
-    measure_distance();//距離測定、最新値更新
-    break;
-    
-    case PROGRAM_STS_STOPPED:
-    // プログラム内部状態：終了
-    break;
-    }
-
-  // 次のループ処理まで100ミリ秒待機
-  delay(100);
+uint16_t ToF_Sensor::get_distance() {
+  // uint16_t distance;
+  // 距離センサから測定値を取得
+  // distance = distance_sensor.readRangeContinuousMillimeters();
+  return distance_sensor.readRangeContinuousMillimeters();
 }
+
+
+
+
 /**
  * @brief ToF距離センサから対象物との距離を取得し、最新値を更新
  */
-void measure_distance() {  //距離を制御。距離を取得
+void ToF_Sensor::measure_distance() {  //距離を制御。距離を取得
   uint16_t distance;
   // 距離センサから測定値を取得
   distance = distance_sensor.readRangeContinuousMillimeters();
   // 最新値の更新
-  last_distance = distance;  //値を出力
+  // last_distance = distance;  //値を出力
 
   // 最新値をシリアルモニタへ出力
   Serial.print("[measure]distance: ");
-  Serial.print(last_distance);
+  Serial.print(distance);
   Serial.println(" mm");
 }
 
@@ -83,8 +104,8 @@ void measure_distance() {  //距離を制御。距離を取得
  * @retval 0 成功
  * @retval -1 失敗
  */
-int8_t try_recovering_sensor() {
-  bool is_i2c_locked = false;
+int8_t ToF_Sensor::try_recovering_sensor() {
+  // bool is_i2c_locked = false;
   // I2C異常か確認
   Wire.end();
   int i2c_sda = digitalRead(PIN_D14);
@@ -121,7 +142,7 @@ int8_t try_recovering_sensor() {
 /**
  * @brief センサのソフトリセット処理
  */
-void sensor_soft_reset(void) {
+void ToF_Sensor::sensor_soft_reset(void) {
   // set rest bit
   distance_sensor.writeReg(VL53L0X::regAddr::SOFT_RESET_GO2_SOFT_RESET_N, 0x00);
   if (distance_sensor.last_status != 0) {
@@ -134,7 +155,8 @@ void sensor_soft_reset(void) {
     value = distance_sensor.readReg(VL53L0X::regAddr::IDENTIFICATION_MODEL_ID);
     if (millis() - start_millis > 2 * 1000) {
       Serial.println("[sensor_soft_reset]error timeup.");
-      break;
+      // break;
+      return;
     }
   } while (value != 0);
 
@@ -145,7 +167,8 @@ void sensor_soft_reset(void) {
     value = distance_sensor.readReg(VL53L0X::regAddr::IDENTIFICATION_MODEL_ID);
     if (millis() - start_millis > 2 * 1000) {
       Serial.println("[sensor_soft_reset]error timeup.");
-      break;
+      // break;
+      return;
     }
   } while (value == 0);
 }
