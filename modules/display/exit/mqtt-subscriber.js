@@ -10,12 +10,6 @@ const MQTT_TOPIC = process.env.MQTT_TOPIC;
 const MQTT_USERNAME = process.env.MQTT_USERNAME;
 const MQTT_PASSWORD = process.env.MQTT_PASSWORD;
 const MQTT_WEBPORT = Number(process.env.MQTT_WEBPORT);
-// console.log(process.env);
-// console.log(process.env);
-// const host = 'broker.emqx.io';
-// const port = '1883'; 
-// const username = '';
-// const password = '';
 
 const clientId = `mqtt_${Math.random().toString(16).slice(3)}`;  
 
