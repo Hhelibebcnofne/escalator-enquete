@@ -52,8 +52,8 @@ void MQTTPublish::setup() {
 	hostParams.host = (char *)MQTT_SRVR;
 	hostParams.port = (char *)MQTT_PORT;
 	hostParams.clientID = (char *)MQTT_CLI_ID;
-	hostParams.userName = NULL;
-	hostParams.password = NULL;
+	hostParams.userName = (char *)MQTT_USERNAME;
+	hostParams.password = (char *)MQTT_PASSWPRD;
 
 	theMqttGs2200.begin(&hostParams);
   	Serial.println("setup _4");

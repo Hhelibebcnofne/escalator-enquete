@@ -1,13 +1,25 @@
 const express = require('express');
 const mqtt = require('mqtt');
 const path = require('path');
+require('dotenv').config()
 
 const app = express();
-const host = 'broker.emqx.io';
-const port = '1883'; 
+const MQTT_HOST = process.env.MQTT_HOST;
+const MQTT_PORT = process.env.MQTT_PORT;
+const MQTT_TOPIC = process.env.MQTT_TOPIC;
+const MQTT_USERNAME = process.env.MQTT_USERNAME;
+const MQTT_PASSWORD = process.env.MQTT_PASSWORD;
+const MQTT_WEBPORT = Number(process.env.MQTT_WEBPORT);
+// console.log(process.env);
+// console.log(process.env);
+// const host = 'broker.emqx.io';
+// const port = '1883'; 
+// const username = '';
+// const password = '';
+
 const clientId = `mqtt_${Math.random().toString(16).slice(3)}`;  
 
-const connectUrl = `mqtt://${host}:${port}`;   
+const connectUrl = `mqtt://${MQTT_HOST}:${MQTT_PORT}`;   
 let messageCount1 = 0;
 let messageCount2 = 0;
 
@@ -15,22 +27,22 @@ const client = mqtt.connect(connectUrl, {
   clientId,
   clean: true,
   connectTimeout: 4000,
-  username: 'emqx',
-  password: 'subscrib',
+  username: MQTT_USERNAME,
+  password: MQTT_PASSWORD,
   reconnectPeriod: 1000,
 });
 
-const topic = '/nodejs/mqtt';
+// const topic = '/nodejs/mqtt';
 
 client.on('connect', () => {
   console.log('Connected to MQTT Broker');
 
-  client.subscribe([topic], () => {
-    console.log(`Subscribed to topic '${topic}'`);
+  client.subscribe([MQTT_TOPIC], () => {
+    console.log(`Subscribed to topic '${MQTT_TOPIC}'`);
   });
 });
 
-client.on('message', (topic, payload) => {
+client.on('message', (MQTT_TOPIC, payload) => {
   let payload_txt = payload.toString();
   if (payload_txt === '0') {
     messageCount1++;
@@ -50,7 +62,6 @@ app.get('/counts', (req, res) => {
 });
 
 // サーバーを起動
-const webPort = 3000;
-app.listen(webPort, () => {
-  console.log(`Server is running on http://localhost:${webPort}`);
+app.listen(MQTT_WEBPORT, () => {
+  console.log(`Server is running on http://localhost:${MQTT_WEBPORT}`);
 });
