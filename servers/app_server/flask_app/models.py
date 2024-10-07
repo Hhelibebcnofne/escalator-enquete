@@ -1,8 +1,8 @@
 from flask_app import db
 
 
-class Test(db.Model):
-    __tablename__ = "test"
+class User(db.Model):
+    __tablename__ = "escalator-enquete"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255))
 
@@ -11,3 +11,9 @@ class Test(db.Model):
 
     def __repr__(self):
         return f"<Test {self.name}>"
+
+    def toDict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+        }
