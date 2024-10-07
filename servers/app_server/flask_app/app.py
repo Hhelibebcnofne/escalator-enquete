@@ -39,11 +39,10 @@ def add_user():
         return redirect(url_for("read_user"))
 
 
-@app.route("/users/read", methods=["GET"])
+@app.route("/users", methods=["GET"])
 def read_user():
     users = User.query.all()
     users = [user.toDict() for user in users]
-    print(users)
     data = {"users": users}
     return render_inertia(
         component_name="ReadUsers",
@@ -52,30 +51,31 @@ def read_user():
     )
 
 
-# @app.route("/users/<int:id>", methods=["GET", "PUT"])
-# def update_user(id):
-#     user = User.query.get(id)
-#     if request.method == "GET":
-#         data = {"user": user}
-#         return render_inertia(
-#             component_name="UpdateUsers",
-#             props=data,
-#             view_data={},
-#         )
-#     if request.method == "PUT":
-#         user = User.query.get(id)
-#         user.name = request.form["name"]
-#         db.session.merge(user)
-#         db.session.commit()
-#         return redirect(url_for("read_user"))
+@app.route("/users/<int:id>", methods=["GET", "PUT"])
+def update_user(id):
+    user = User.query.get(id)
+    user = user.toDict()
+    if request.method == "GET":
+        data = {"user": user}
+        return render_inertia(
+            component_name="UpdateUsers",
+            props=data,
+            view_data={},
+        )
+    if request.method == "PUT":
+        user = User.query.get(id)
+        user.name = request.json["name"]
+        db.session.merge(user)
+        db.session.commit()
+        return redirect(url_for("read_user"))
 
 
-# @app.route("/users/<int:id>", methods=["DELETE"])
-# def delete_user(id):
-#     user = User.query.get(id)
-#     db.session.delete(user)
-#     db.session.commit()
-#     return redirect(url_for("read_user"))
+@app.route("/users/<int:id>", methods=["DELETE"])
+def delete_user(id):
+    user = User.query.get(id)
+    db.session.delete(user)
+    db.session.commit()
+    return redirect(url_for("read_user"))
 
 
 if __name__ == "__main__":
