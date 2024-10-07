@@ -26,11 +26,7 @@ const Update: FC<UpdateUsersProps> = ({ user }) => {
   return (
     <div>
       <h1>Update User</h1>
-      <form
-        method="put"
-        // action={`/users/${user.id}`}
-        onSubmit={handleFormSubmit}
-      >
+      <form onSubmit={handleFormSubmit}>
         <input
           id="name"
           type="text"

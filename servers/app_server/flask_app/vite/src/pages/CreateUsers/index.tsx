@@ -1,11 +1,34 @@
-import { FC } from "react";
+import { ChangeEvent, FC, useState } from "react";
+import { User } from "../ReadUsers/index";
 
 const Create: FC = () => {
+  const [userName, setUserName] = useState("");
+  const handleUserNameChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setUserName(event.target.value);
+  };
+  const handleFormSubmit = (event: ChangeEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    fetch(`/users`, {
+      method: "post",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name: userName }),
+    }).then(() => {
+      window.location.href = "/users";
+    });
+  };
+
   return (
     <div>
       <h1>Create User</h1>
-      <form method="post" action="create">
-        <input type="text" placeholder="Name" />
+      <form onSubmit={handleFormSubmit}>
+        <input
+          id="name"
+          type="text"
+          value={userName}
+          onChange={handleUserNameChange}
+        />
         <button type="submit">Create User</button>
       </form>
     </div>

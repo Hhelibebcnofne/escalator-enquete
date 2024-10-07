@@ -21,34 +21,35 @@ def send_public(path):
     return send_from_directory("vite/dist", path)
 
 
-@app.route("/users/create", methods=["GET", "POST"])
+@app.route("/users/create", methods=["GET"])
 def add_user():
+    data = {}
+    return render_inertia(
+        component_name="CreateUsers",
+        props=data,
+        view_data={},
+    )
+
+
+@app.route("/users", methods=["GET", "POST"])
+def read_user():
     if request.method == "GET":
-        data = {}
+        users = User.query.all()
+        users = [user.toDict() for user in users]
+        data = {"users": users}
         return render_inertia(
-            component_name="CreateUsers",
+            component_name="ReadUsers",
             props=data,
             view_data={},
         )
     if request.method == "POST":
+        username = request.json["name"]
         user = User(
-            name="Test",
+            name=username,
         )
         db.session.add(user)
         db.session.commit()
         return redirect(url_for("read_user"))
-
-
-@app.route("/users", methods=["GET"])
-def read_user():
-    users = User.query.all()
-    users = [user.toDict() for user in users]
-    data = {"users": users}
-    return render_inertia(
-        component_name="ReadUsers",
-        props=data,
-        view_data={},
-    )
 
 
 @app.route("/users/<int:id>", methods=["GET", "PUT"])

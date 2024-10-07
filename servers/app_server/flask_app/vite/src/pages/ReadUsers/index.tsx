@@ -27,7 +27,12 @@ const ReadUsers: FC<ReadUsersProps> = ({ users }) => {
           </div>
           <div>
             <a href={`/users/${user.id}`}>Update </a>
-            <a onClick={() => handleDeleteUser(user.id)}>Delete</a>
+            <a
+              onClick={() => handleDeleteUser(user.id)}
+              style={{ cursor: "pointer" }}
+            >
+              Delete
+            </a>
           </div>
         </>
       ))}
