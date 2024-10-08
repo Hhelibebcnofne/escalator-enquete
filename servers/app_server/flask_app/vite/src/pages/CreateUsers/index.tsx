@@ -1,5 +1,4 @@
 import { ChangeEvent, FC, useState } from "react";
-import { User } from "../ReadUsers/index";
 
 const Create: FC = () => {
   const [userName, setUserName] = useState("");
