@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>投票結果</title>
+    <link rel="stylesheet" href="kaitou.css">
+</head>
+<body>
+    <!--<p><span id="number"></span></p>-->
+
+    <div class="container">
+        <h1>現在までの投票結果</h1>
+        <div class="results-container"><!--長さ制御-->
+            <div class="result-bar"><!--位置制御--><!--回答.jsにて拡大・縮小のクラスを追加-->
+                <p><div id="number_A"></div><div class="label"></div></p><!--🐶 犬-->
+                <div class="bar"><!--グラフの表示-->
+                    <div class="bar-inner dog-bar-inner"></div><!-- ここに動的に幅が反映される -->
+                </div>
+                <p><span id="number_inu"></span><div class="percentage">%</div></p> <!-- ここに数値が挿入される -->
+            </div>
+            
+
+            <div class="result-bar2"><!--回答.jsにて拡大・縮小のクラスを追加-->
+                <p><span id="number_B"></span><div class="label"></div></p><!--🐱 猫-->
+                <div class="bar">
+                    <div class="bar-inner cat-bar-inner"></div><!-- ここに動的に幅が反映される -->
+                </div>
+                <p><span id="number_neko"></span><div class="percentage">%</div></p> <!-- ここに数値が挿入される -->
+            </div>
+
+
+        </div>
+
+
+        <div class="description">
+            <p>合計投票人数: <span id="number_hito"></span>人</p>
+        </div>
+
+        
+    </div>
+    <script src ="kaitou.js">//ここにJavascriptコードを記述
+    </script>
+</body>
+</html>
