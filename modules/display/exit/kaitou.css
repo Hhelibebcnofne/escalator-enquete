@@ -5,7 +5,9 @@ body {
     height: 100vh;
     margin: 0;
     font-family: 'Arial', sans-serif;
-    background-color: #f4f4f4;
+    /*background-color: #f4f4f4;*/
+    background: linear-gradient(-45deg, rgb(255, 255, 214), rgba(249, 227, 216, 0.8)) fixed;
+    background-size: cover;
 }
 
 .container {
@@ -136,4 +138,34 @@ h1 {
     100% {
         transform: scale(1);
     }
+  }
+
+
+  /* アニメーション */
+@keyframes bounce {
+    0% {
+      transform: translateY(0);
+    }
+    10% {
+      transform: translateY(-10px);
+    }
+    20% {
+      transform: translateY(0);
+    }
+    30% {
+      transform: translateY(-10px);
+    }
+    40% {
+      transform: translateY(0);
+    }
+  }
+  .anime-object {
+    animation: bounce 2s linear infinite;
+  }
+  .circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50px;
+    margin: 20px auto;
+    background-color: #15aaa1;
   }
