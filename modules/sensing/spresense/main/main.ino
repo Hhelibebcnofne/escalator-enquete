@@ -2,34 +2,71 @@
 #include <VL53L0X.h>
 #include "ToF_Sensor.h"
 #include "MQTTPublish.h"
+#include <SoftwareSerial.h>
 
-// ToF_Sensorのインスタンスを作成
+#define BT_RX_PIN PIN_D00
+#define BT_TX_PIN PIN_D01
+
+SoftwareSerial BT(BT_TX_PIN, BT_RX_PIN);
+
 ToF_Sensor tof_sensor;
 MQTTPublish mqttpublish;
 
+pthread_t distance_sensor_process, bluetooth_process;
+
 void setup() {
     Serial.begin(115200);
-
+    BT.begin(9600);
     tof_sensor.setup();
-    mqttpublish.setup();
-    // Serial.println("Hello, Spresense!");
+    // mqttpublish.setup();
+
+    pthread_create(&bluetooth_process, NULL, start_bluetooth_process, NULL);
+    pthread_create(&distance_sensor_process, NULL, start_distance_sensor, NULL);
 }
-int LR_threshold = 200;
+uint16_t LR_threshold = 200;
 int distans_value = 100000;
-void loop() {
-    distans_value = tof_sensor.get_distance();
+int LR_result = -1; //センサからの入力値がLR_threshold以下なら「０」以上なら「１」が格納される変数
 
-    if (distans_value < LR_threshold){
-        mqttpublish.send("1");
-    } else if (distans_value > LR_threshold && distans_value < 1000){
-        mqttpublish.send("0");
+
+void start_bluetooth_process() {
+  String message;
+  while (true) {
+    if (LR_result == 0){
+      message = "0";
+    } else if (LR_result == 1) {
+      message = "1";
     } else {
-        Serial.println("人物通過待機...");
+      message = "-1";
     }
+    BT.println(message);
+    delay(1000);
+  }
+}
 
-    Serial.println(distans_value);
+void start_distance_sensor() {
+  /*
+  センサからの入力値が閾値を超えてるか超えてないかを判定する関数
+  センサからの入力値がLR_threshold以下なら「０」以上なら「１」がLR_result格納される
+  */
+  tof_sensor.start_distance_sensor_process(&LR_result, LR_threshold);
+}
+
+void loop() {
+    // distans_value = tof_sensor.get_distance();
+
+    // if (distans_value < LR_threshold){
+    //     mqttpublish.send("1");
+    // } else if (distans_value > LR_threshold && distans_value < 1000){
+    //     mqttpublish.send("0");
+    // } else {
+    //     // Serial.println("人物通過待機...");
+    // }
+
+    // Serial.println(distans_value);
 
     // mqttpublish.send("1");
-    // Serial.println("Hello, Spresense!");
-    delay(2000);
+    // mqttpublish.send("0");
+    // *_LR_result = &LR_result;
+    Serial.println(LR_result);
+    // delay(2000);
 }
