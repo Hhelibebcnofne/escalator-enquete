@@ -2,9 +2,11 @@ from flask import Flask
 from flask_vite import Vite
 from flask_inertia import Inertia
 from flask_sqlalchemy import SQLAlchemy
+from flask_mqtt import Mqtt
 
 db = SQLAlchemy()
 inertia = Inertia()
+mqtt = Mqtt()
 
 
 def create_app():
@@ -24,9 +26,12 @@ def create_app():
 
     inertia.init_app(app)
 
-    # from flask_app.views.index import index_bp
-    # from flask_app.views.sample import sample_bp
-    # app.register_blueprint(index_bp)
+    mqtt.init_app(app)
+
+    # from flask_app.controllers.mqtt import mqtt_bp
+    # app.register_blueprint(mqtt_bp)
+
+    # from flask_app.controllers.sample import sample_bp
     # app.register_blueprint(sample_bp)
 
     return app

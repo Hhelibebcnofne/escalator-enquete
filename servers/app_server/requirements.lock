@@ -16,9 +16,12 @@ click==8.1.7
 flask==3.0.3
     # via backend
     # via flask-inertia
+    # via flask-mqtt
     # via flask-sqlalchemy
     # via flask-vite
 flask-inertia==0.9
+    # via backend
+flask-mqtt==1.2.1
     # via backend
 flask-sqlalchemy==3.1.1
     # via backend
@@ -35,6 +38,8 @@ jsmin==3.0.1
 markupsafe==2.1.5
     # via jinja2
     # via werkzeug
+paho-mqtt==1.6.1
+    # via flask-mqtt
 python-dotenv==1.0.1
     # via backend
 sqlalchemy==2.0.35
