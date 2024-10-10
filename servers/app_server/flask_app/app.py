@@ -1,7 +1,7 @@
 from flask_app import create_app, db, mqtt
 from flask import send_from_directory, request, redirect, url_for
 from flask_inertia import render_inertia
-from flask_app.models import User
+from flask_app.models import User, Mqtt
 
 app = create_app()
 
@@ -13,7 +13,12 @@ def handle_connect(client, userdata, flags, rc):
 
 @mqtt.on_message()
 def handle_mqtt_message(client, userdata, message):
-    print(f"Received message '{message.payload.decode()}' on topic '{message.topic}'")
+    message_text = message.payload.decode()
+    print(f"Received message '{message_text}' on topic '{message.topic}'")
+    with app.app_context():
+        mqtt = Mqtt(topic=message.topic, message=message_text, qos=message.qos)
+        db.session.add(mqtt)
+        db.session.commit()
 
 
 @app.route("/")
