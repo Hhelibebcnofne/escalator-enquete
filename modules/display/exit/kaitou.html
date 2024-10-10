@@ -10,10 +10,10 @@
 
     <div class="container">
 
-        <div class="anime-object"><h1><h2>現在までの投票結果</h2></h1></div>
+        <div class="anime-object fademigikara"><h1><h2>現在までの投票結果</h2></h1></div>
         <!--<h1><div class="anime-object circle">現在までの投票結果</div></h1>-->
 
-        <div class="results-container"><!--長さ制御-->
+        <div class="results-container fadehidarikara"><!--長さ制御-->
             <div class="result-bar"><!--位置制御--><!--回答.jsにて拡大・縮小のクラスを追加-->
                 <p><div id="number_A"></div><div class="label"></div></p><!--🐶 犬-->
                 <div class="bar"><!--グラフの表示-->
@@ -21,26 +21,28 @@
                 </div>
                 <p><span id="number_inu"></span><div class="percentage">%</div></p> <!-- ここに数値が挿入される -->
             </div>
+        </div>
             
-
-            <div class="result-bar2"><!--回答.jsにて拡大・縮小のクラスを追加-->
+        <div class="results-container fademigikara">
+            <div class="result-bar2 "><!--回答.jsにて拡大・縮小のクラスを追加-->
                 <p><span id="number_B"></span><div class="label"></div></p><!--🐱 猫-->
                 <div class="bar">
                     <div class="bar-inner cat-bar-inner"></div><!-- ここに動的に幅が反映される -->
                 </div>
                 <p><span id="number_neko"></span><div class="percentage">%</div></p> <!-- ここに数値が挿入される -->
-            </div>
+        </div>
 
 
         </div>
 
 
         <div class="description">
-            <p><div class="anime-object">合計投票人数: <span id="number_hito"></span>人</div></p>
+            <p><div class="anime-object fadehidarikara">合計投票人数: <span id="number_hito"></span>人</div></p>
         </div>
         <!--お試し-->
         <div class="anime-object circle"></div>
-        <p><div class="fadein">aaaaaaaaaaaaaaaa</div></p>
+        <p><div class="fademigikara">aaaaaaaaaaaaaaaa</div></p>
+        <p><div class="fadehidarikara">aaaaaaaaaaaaaaaa</div></p>
 
         
     </div>

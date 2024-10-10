@@ -215,18 +215,32 @@ h1 {
     background-position: 0 0, 30px 30px;
   }*/
 
-  .fadein {
-    animation: fade-in 3s ease-in-out 2s forwards;
+  .fademigikara {
+    animation: fade-in-migihida 1s ease-in-out 2s forwards;
+}
+  .fadehidarikara {
+    animation: fade-in-hidamigi 1s ease-in-out 2s forwards;
 }
 
-  /* フェードイン */
-@keyframes fade-in {
+  /* フェードイン：左←右*/
+@keyframes fade-in-migihida {
     0% {
       opacity: 0;
-      transform: translateY(60px);
+      transform: translateX(60px);
     }
     100% {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateX(0);
+    }
+  }
+  /* フェードイン：左→右*/
+  @keyframes fade-in-hidamigi {
+    0% {
+      opacity: 0;
+      transform: translateX(-60px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
     }
   }
