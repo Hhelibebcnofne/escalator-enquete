@@ -172,17 +172,20 @@ h1 {
   }
 
   h2 {/*吹き出し💭*/
+    max-width: 300px;/*最大幅を制限することで膨張を抑える(1000→300へ)*/
+    max-height: 100px;
     position: relative;
-    padding: 1.5rem 2rem;
+    padding: 1.5rem 4rem;
     border: 3px solid #d8d8d8;/*吹き出しの幅*/
     border-radius: 10px;
+    margin: 20px auto;
     background: #f9f9f9;
   }
   
   h2:before {
     position: absolute;
     bottom: -14px;
-    left: 22.5em;
+    left: 8.45em;
     width: 0;
     height: 0;
     content: '';
@@ -194,7 +197,7 @@ h1 {
   h2:after {
     position: absolute;
     bottom: -10px;
-    left: 22.5em;
+    left: 8.45em;
     width: 0;
     height: 0;
     content: '';
