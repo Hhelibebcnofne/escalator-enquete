@@ -1,0 +1,279 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    /*background-color: #f4f4f4;
+    白の方が見やすい気がする。。。*/
+    background: linear-gradient(-45deg, rgb(255, 255, 214), rgba(249, 227, 216, 0.8)) fixed;
+    background-size: cover;
+}
+
+.container {
+    text-align: center;
+    width: 90%;
+    /* ページ幅を広げる */
+}
+
+h1 {
+    font-size: 3em;
+    margin-bottom: 30px;
+    color: #333;
+}
+
+.results-container {
+    width: 100%;
+    max-width: 800px;
+    /* バーをより長くするために最大幅を増やす */
+    margin: 0 auto;
+}
+
+.result-bar {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+
+
+
+.result-bar2 {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+
+
+
+
+.label {
+    width: 20px;
+    font-size: 1.5em;
+    color: #333;
+    text-align: left;
+    animation: zoomAnim 1s infinite;
+}
+
+.bar {
+    flex: 1;
+    width: 100%;
+    height: 40px;
+    border-radius: 10px;
+    /*角を丸く*/
+    background-color: #ddd;
+    /*グラフのグレーゾーン部分*/
+    overflow: hidden;
+    position: relative;
+    margin-right: 10px;
+    /* バーと比率の間にスペースを作る */
+}
+
+.bar-inner {
+    /*分け分からんので一旦保留。*/
+    /*恐らく、余白部分*/
+    height: 100%;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.2em;
+    white-space: nowrap;
+}
+
+.dog-bar-inner {
+    /*グラフの赤線*/
+    background-color: #ff6363;
+    animation: graphAnim 3s forwards;
+    /*ここで動き*/
+
+}
+
+/*上*/
+
+.cat-bar-inner {
+    /*グラフの青線*/
+    background-color: #00b1a9;
+    animation: graphAnim 3s forwards;
+    /*ここで動き*/
+}
+
+/*下*/
+
+.percentage {
+    font-size: 1.2em;
+    color: #333;
+    width: 50px;
+    /* 比率の表示エリアを調整 */
+    text-align: left;
+}
+
+.description {
+    margin-top: 30px;
+    font-size: 1.2em;
+    color: #333;
+}
+
+
+@keyframes graphAnim {
+
+    /*アニメーション*/
+    /*○○秒に一回のみ*/
+    0% {
+        transform: translateX(-100%);
+        transform: scale(1);
+    }
+
+    100% {
+        transform: translateX(0);
+        transform: scale(1);
+        /*ここの値を1にすると100%で満タンになる*/
+    }
+}
+
+
+.bar-graph-wrap {
+    overflow: hidden;
+}
+
+.zoom-in {
+    /*transition: 1s;*/
+    /*+1で一回稼働*/
+    height: 120%;
+    border-radius: 10px;
+    /*角〇*/
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+    animation: zoomAnim 2s ease;
+}
+
+@keyframes zoomAnim {
+
+    /*アニメーション*/
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+
+/* アニメーション */
+@keyframes bounce {
+    0% {
+        transform: translateY(0);
+    }
+
+    10% {
+        transform: translateY(-10px);
+    }
+
+    20% {
+        transform: translateY(0);
+    }
+
+    30% {
+        transform: translateY(-10px);
+    }
+
+    40% {
+        transform: translateY(0);
+    }
+}
+
+.anime-object {
+    animation: bounce 2s linear infinite;
+}
+
+.circle {
+    /*〇*/
+    width: 100px;
+    height: 100px;
+    border-radius: 50px;
+    margin: 20px auto;
+    background-color: #15aaa1;
+}
+
+h2 {
+    /*吹き出し💭*/
+    max-width: 300px;
+    /*最大幅を制限することで膨張を抑える(1000→300へ)*/
+    max-height: 100px;
+    position: relative;
+    padding: 1.5rem 4rem;
+    border: 3px solid #d8d8d8;
+    /*吹き出しの幅*/
+    border-radius: 10px;
+    margin: 20px auto;
+    background: #f9f9f9;
+}
+
+h2:before {
+    position: absolute;
+    bottom: -14px;
+    left: 8.45em;
+    width: 0;
+    height: 0;
+    content: '';
+    border-width: 14px 12px 0 12px;
+    border-style: solid;
+    border-color: #d8d8d8 transparent transparent transparent;
+}
+
+h2:after {
+    position: absolute;
+    bottom: -10px;
+    left: 8.45em;
+    width: 0;
+    height: 0;
+    content: '';
+    border-width: 14px 12px 0 12px;
+    border-style: solid;
+    border-color: #f9f9f9 transparent transparent transparent;
+}
+
+
+.fademigikara {
+    animation: fade-in-migihida 1s ease-in-out 2s forwards;
+}
+
+.fadehidarikara {
+    animation: fade-in-hidamigi 1s ease-in-out 2s forwards;
+}
+
+/* フェードイン：左←右*/
+@keyframes fade-in-migihida {
+    0% {
+        opacity: 0;
+        transform: translateX(60px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* フェードイン：左→右*/
+@keyframes fade-in-hidamigi {
+    0% {
+        opacity: 0;
+        transform: translateX(-60px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}

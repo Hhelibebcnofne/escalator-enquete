@@ -1,0 +1,70 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+}
+
+.container {
+    text-align: center;
+}
+
+h1 {
+    font-size: 3em;
+    margin-bottom: 30px;
+    color: #333;
+}
+
+.button-container {/*たぶん、これは行間の整理*/
+    display: flex;
+    justify-content: space-around;
+    gap: 30px; /* 回答の間にスペースを空ける */
+    margin-top: 20px;
+}
+
+.button {
+    padding: 20px 40px;
+    font-size: 2em;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1; /* 文字とアイコンの高さを揃える */
+}
+
+.button:hover {
+    transform: scale(1.1);
+}
+
+.dog {
+    background-color: #ff6363;
+}
+
+.cat {
+    background-color: #00b1a9;
+}
+
+.dog::before {
+    content: "🐶";
+    font-size: 1.5em;
+    margin-right: 10px;
+}
+
+.cat::before {
+    content: "🐱";
+    font-size: 1.5em;
+    margin-right: 10px;
+}
+
+.description {
+    margin-top: 20px;
+    font-size: 1.2em;
+    color: #333;
+}
