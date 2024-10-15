@@ -2,10 +2,10 @@
 #define TOF_SENSOR_H
 
 #include <VL53L0X.h>
-#include "define.h"  //#includeで呼び出し
-#include "measure_distance.h"
-#include "sensor_soft_reset.h"
-#include "try_recovering_sensor.h"
+
+void measure_distance();
+void sensor_soft_reset(void);
+int8_t try_recovering_sensor();
 
 class ToF_Sensor {
    private:

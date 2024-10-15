@@ -1,10 +1,4 @@
-
 #include "MQTTPublish.h"
-#include <EltresAddonBoard.h>
-#include <MqttGs2200.h>
-#include <TelitWiFi.h>
-#include <stdio.h>
-#include "config.h"
 
 MQTTPublish::MQTTPublish() {
     TelitWiFi gs2200;

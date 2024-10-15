@@ -1,4 +1,3 @@
-// #include <VL53L0X.h>
 #include "ToF_Sensor.h"
 
 ToF_Sensor::ToF_Sensor() {
@@ -12,12 +11,6 @@ void ToF_Sensor::setup() {
     // シリアルモニタ出力設定
     Serial.begin(115200);
 
-    // プログラム内部状態
-    int program_sts = PROGRAM_STS_INIT;
-
-#include "LED.h"
-#include "syokisettei.h"
-
     bool sensor_initialized = distance_sensor.init();
     if (sensor_initialized == false) {
         // int8_t is_recovered = try_recovering_sensor();
@@ -29,8 +22,6 @@ void ToF_Sensor::setup() {
 
         if (sensor_initialized == false) {
             // センサエラー
-            digitalWrite(LED_ERR, HIGH);  // LED3点灯
-            program_sts = PROGRAM_STS_STOPPED;
             Serial.println("cannnot start a distance sensor.");
             return;
         }
@@ -39,26 +30,7 @@ void ToF_Sensor::setup() {
     // 測定開始
     distance_sensor.startContinuous();
 
-    // 正常
-    program_sts = PROGRAM_STS_RUNNING;
 }
-
-// void ToF_Sensor::loop() {
-//   switch (program_sts){
-//     case PROGRAM_STS_RUNNING:
-//     // プログラム内部状態：起動中
-//       measure_distance();//距離測定、最新値更新
-//     // break;
-
-//     // case PROGRAM_STS_STOPPED:
-//     // プログラム内部状態：終了
-//     // break;
-
-//     }
-
-//   // 次のループ処理まで100ミリ秒待機
-//   delay(100);
-// }
 
 /**
  * @brief loop()関数

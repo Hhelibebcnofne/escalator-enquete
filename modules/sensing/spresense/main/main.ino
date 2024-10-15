@@ -1,4 +1,3 @@
-#include <EltresAddonBoard.h>
 #include <SoftwareSerial.h>
 #include <VL53L0X.h>
 #include "MQTTPublish.h"

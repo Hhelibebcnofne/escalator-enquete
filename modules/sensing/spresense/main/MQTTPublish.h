@@ -1,5 +1,3 @@
-
-#include <EltresAddonBoard.h>
 #include <MqttGs2200.h>
 #include <TelitWiFi.h>
 #include <stdio.h>
