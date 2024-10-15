@@ -1,5 +1,4 @@
 #include <SoftwareSerial.h>
-#include <VL53L0X.h>
 #include "MQTTPublish.h"
 #include "ToF_Sensor.h"
 
@@ -66,21 +65,5 @@ void start_distance_sensor() {
 }
 
 void loop() {
-    // distance_value = tof_sensor.get_distance();
 
-    // if (distance_value < LR_threshold){
-    //     mqttpublish.send("1");
-    // } else if (distance_value > LR_threshold && distance_value < 1000){
-    //     mqttpublish.send("0");
-    // } else {
-    //     // Serial.println("人物通過待機...");
-    // }
-
-    // Serial.println(distance_value);
-
-    // mqttpublish.send("1");
-    // mqttpublish.send("0");
-    // *_LR_result = &LR_result;
-    // Serial.println(LR_result);
-    // delay(2000);
 }
