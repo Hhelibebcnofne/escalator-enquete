@@ -17,6 +17,14 @@ body {
     /* ページ幅を広げる */
 }
 
+#bluetooth-connect-button{
+    margin-bottom: 40px;  
+    top: 10px;
+    left: 10px;
+    position: absolute;
+    
+}
+
 h1 {
     font-size: 3em;
     margin-bottom: 30px;

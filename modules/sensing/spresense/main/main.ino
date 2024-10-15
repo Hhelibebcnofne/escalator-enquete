@@ -28,19 +28,34 @@ int distans_value = 100000;
 int LR_result = -1; //センサからの入力値がLR_threshold以下なら「０」以上なら「１」が格納される変数
 
 
+#define LR_inversion false
+
 void start_bluetooth_process() {
   String message;
   while (true) {
-    if (LR_result == 0){
-      message = "0";
-    } else if (LR_result == 1) {
-      message = "1";
-    } else {
-      message = "-1";
+    #if LR_inversion
+      if (LR_result == 0){
+        message = "left_count";
+      } else if (LR_result == 1) {
+        message = "right_count";
+      } else {
+        message = "count_error";
+      }
+    #else
+
+      if (LR_result == 0){
+        message = "right_count";
+      } else if (LR_result == 1) {
+        message = "left_count";
+      } else {
+        message = "count_error";
+      }
+    #endif
+
+      BT.println(message);
+      Serial.println(message);
+      delay(1000);
     }
-    BT.println(message);
-    delay(1000);
-  }
 }
 
 void start_distance_sensor() {
@@ -67,6 +82,6 @@ void loop() {
     // mqttpublish.send("1");
     // mqttpublish.send("0");
     // *_LR_result = &LR_result;
-    Serial.println(LR_result);
+    // Serial.println(LR_result);
     // delay(2000);
 }
