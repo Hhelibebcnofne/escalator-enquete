@@ -1,4 +1,4 @@
-//#define系まとめ
+// #define系まとめ
 
 // PIN定義：LED(GNSS電波状態)
 #define LED_GNSS PIN_LED1

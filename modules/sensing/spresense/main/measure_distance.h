@@ -1,2 +1,2 @@
-//距離取得
+// 距離取得
 void measure_distance();

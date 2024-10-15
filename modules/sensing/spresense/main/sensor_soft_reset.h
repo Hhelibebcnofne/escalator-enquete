@@ -1,2 +1,2 @@
-//リセット処理
+// リセット処理
 void sensor_soft_reset(void);
