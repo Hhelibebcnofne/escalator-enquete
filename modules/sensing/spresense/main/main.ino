@@ -25,36 +25,32 @@ void setup() {
     tof_sensor.setup();
     // mqttpublish.setup();
 
-    pthread_create(&bluetooth_process, NULL, start_bluetooth_process, NULL);
     pthread_create(&distance_sensor_process, NULL, start_distance_sensor, NULL);
 }
 
 void start_bluetooth_process() {
     String message;
-    while (true) {
 #if LR_INVERSION
-        if (LR_result == 0) {
-            message = "left_count";
-        } else if (LR_result == 1) {
-            message = "right_count";
-        } else {
-            message = "count_error";
-        }
+    if (LR_result == 0) {
+        message = "left_count";
+    } else if (LR_result == 1) {
+        message = "right_count";
+    } else {
+        message = "count_error";
+    }
 #else
 
-        if (LR_result == 0) {
-            message = "right_count";
-        } else if (LR_result == 1) {
-            message = "left_count";
-        } else {
-            message = "count_error";
-        }
+    if (LR_result == 0) {
+        message = "right_count";
+    } else if (LR_result == 1) {
+        message = "left_count";
+    } else {
+        message = "count_error";
+    }
 #endif
 
-        BT.println(message);
-        Serial.println(message);
-        delay(1000);
-    }
+    BT.println(message);
+    Serial.println(message);
 }
 
 void start_distance_sensor() {
@@ -65,4 +61,7 @@ void start_distance_sensor() {
     tof_sensor.start_distance_sensor_process(&LR_result, LR_THRESHOLD);
 }
 
-void loop() {}
+void loop() {
+    pthread_create(&bluetooth_process, NULL, start_bluetooth_process, NULL);
+    delay(1000);
+}
