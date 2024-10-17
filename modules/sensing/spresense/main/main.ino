@@ -5,6 +5,13 @@
 #define BT_RX_PIN PIN_D00
 #define BT_TX_PIN PIN_D01
 
+#define LR_INVERSION false
+#define LR_THRESHOLD 200
+
+int distance_value = 100000;
+// センサからの入力値がLR_threshold以下なら「０」以上なら「１」が格納される変数
+int LR_result = -1;
+
 SoftwareSerial BT(BT_TX_PIN, BT_RX_PIN);
 
 ToF_Sensor tof_sensor;
@@ -21,17 +28,11 @@ void setup() {
     pthread_create(&bluetooth_process, NULL, start_bluetooth_process, NULL);
     pthread_create(&distance_sensor_process, NULL, start_distance_sensor, NULL);
 }
-uint16_t LR_threshold = 200;
-int distance_value = 100000;
-// センサからの入力値がLR_threshold以下なら「０」以上なら「１」が格納される変数
-int LR_result = -1;
-
-#define LR_inversion false
 
 void start_bluetooth_process() {
     String message;
     while (true) {
-#if LR_inversion
+#if LR_INVERSION
         if (LR_result == 0) {
             message = "left_count";
         } else if (LR_result == 1) {
@@ -59,11 +60,9 @@ void start_bluetooth_process() {
 void start_distance_sensor() {
     /*
     センサからの入力値が閾値を超えてるか超えてないかを判定する関数
-    センサからの入力値がLR_threshold以下なら「０」以上なら「１」がLR_result格納される
+    センサからの入力値がLR_THRESHOLD以下なら「０」以上なら「１」がLR_result格納される
     */
-    tof_sensor.start_distance_sensor_process(&LR_result, LR_threshold);
+    tof_sensor.start_distance_sensor_process(&LR_result, LR_THRESHOLD);
 }
 
-void loop() {
-
-}
+void loop() {}

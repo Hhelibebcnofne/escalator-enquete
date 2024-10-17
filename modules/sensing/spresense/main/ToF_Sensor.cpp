@@ -29,7 +29,6 @@ void ToF_Sensor::setup() {
 
     // 測定開始
     distance_sensor.startContinuous();
-
 }
 
 /**
