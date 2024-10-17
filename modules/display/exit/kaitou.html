@@ -10,47 +10,36 @@
 
 <body>
     <button id="bluetooth-connect-button">Connect</button>
-
-    <div class="container"><!--ここで中央揃えにしてる-->
-
-        <div class="vote-title anime-object fademigikara">
-            <h1>
-                <h2>現在までの投票結果</h2>
-            </h1>
-        </div>
-
+    <div class="container">
+        <h2>現在までの投票結果</h2>
         <div class="results-container fadehidarikara"><!--長さ制御-->
-            <div class="result-bar"><!--位置制御--><!--回答.jsにて拡大・縮小のクラスを追加-->
+            <div class="right-answer-bar"><!--位置制御--><!--回答.jsにて拡大・縮小のクラスを追加-->
                 <p>
-                <div id="number_A"></div>
+                <div id="right-answer-description"></div>
                 <div class="label"></div>
-                </p><!--🐶 犬-->
+                </p>
                 <div class="bar"><!--グラフの表示-->
-                    <div class="bar-inner dog-bar-inner"></div><!-- ここに動的に幅が反映される -->
+                    <div class="bar-inner right-answer-ratio-bar-inner"></div><!-- ここに動的に幅が反映される -->
                 </div>
-                <p><span id="number_inu"></span>
-                <div class="percentage">%</div>
-                </p> <!-- ここに数値が挿入される -->
+                <p id="right-answer-ratio"></p> <!-- ここに数値が挿入される -->
             </div>
         </div>
 
         <div class="results-container fademigikara">
-            <div class="result-bar2 "><!--回答.jsにて拡大・縮小のクラスを追加-->
-                <p><span id="number_B"></span>
+            <div class="left-answer-bar "><!--回答.jsにて拡大・縮小のクラスを追加-->
+                <p><span id="left-answer-description"></span>
                 <div class="label"></div>
-                </p><!--🐱 猫-->
+                </p>
                 <div class="bar">
-                    <div class="bar-inner cat-bar-inner"></div><!-- ここに動的に幅が反映される -->
+                    <div class="bar-inner left-answer-ratio-bar-inner"></div><!-- ここに動的に幅が反映される -->
                 </div>
-                <p><span id="number_neko"></span>
-                <div class="percentage">%</div>
-                </p> <!-- ここに数値が挿入される -->
+                <p id="left-answer-ratio"></p> <!-- ここに数値が挿入される -->
             </div>
         </div>
 
         <div class="description">
             <p>
-            <div class="anime-object fadehidarikara">合計投票人数: <span id="number_hito"></span>人</div>
+            <div class="anime-object fadehidarikara">合計投票人数: <span id="total-person-count"></span>人</div>
             </p>
         </div>
     </div>
@@ -58,5 +47,4 @@
     <script src="kaitou.js">//ここにJavascriptコードを記述
     </script>
 </body>
-
 </html>
