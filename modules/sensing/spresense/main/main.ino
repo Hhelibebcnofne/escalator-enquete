@@ -8,10 +8,7 @@
 #define LR_INVERSION false
 #define LR_THRESHOLD 200
 
-int distance_value = 100000;
-// センサからの入力値がLR_threshold以下なら「０」以上なら「１」が格納される変数
 int LR_result = -1;
-
 SoftwareSerial BT(BT_TX_PIN, BT_RX_PIN);
 
 ToF_Sensor tof_sensor;
@@ -58,7 +55,25 @@ void start_distance_sensor() {
     センサからの入力値が閾値を超えてるか超えてないかを判定する関数
     センサからの入力値がLR_THRESHOLD以下なら「０」以上なら「１」がLR_result格納される
     */
-    tof_sensor.start_distance_sensor_process(&LR_result, LR_THRESHOLD);
+    int counter = 0;
+    uint16_t distance_value;
+    // センサからの入力値がLR_threshold以下なら「０」以上なら「１」が格納される変数
+
+    while (true) {
+        // try {
+        distance_value = tof_sensor.get_distance();
+        if (distance_value > LR_THRESHOLD) {
+            LR_result = 1;
+        } else if (distance_value < LR_THRESHOLD) {
+            LR_result = 0;
+        } else {
+            LR_result = -1;
+        }
+        // Serial.println(*LR_results);
+        // } catch(...) {
+        // *LR_results = -1;
+        // }
+    }
 }
 
 void loop() {

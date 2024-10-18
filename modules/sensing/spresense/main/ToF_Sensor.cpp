@@ -41,28 +41,6 @@ uint16_t ToF_Sensor::get_distance() {
     return distance_sensor.readRangeContinuousMillimeters();
 }
 
-void ToF_Sensor::start_distance_sensor_process(int* LR_results,
-                                               uint16_t LR_threshold) {
-    int counter = 0;
-    uint16_t distance_value;
-
-    while (true) {
-        // try {
-        distance_value = distance_sensor.readRangeContinuousMillimeters();
-        if (distance_value > LR_threshold) {
-            *LR_results = 1;
-        } else if (distance_value < LR_threshold) {
-            *LR_results = 0;
-        } else {
-            *LR_results = -1;
-        }
-        // Serial.println(*LR_results);
-        // } catch(...) {
-        // *LR_results = -1;
-        // }
-    }
-}
-
 /**
  * @brief ToF距離センサから対象物との距離を取得し、最新値を更新
  */
