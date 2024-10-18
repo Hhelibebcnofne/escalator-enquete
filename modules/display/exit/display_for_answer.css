@@ -38,24 +38,17 @@ h1 {
     margin: 0 auto;
 }
 
-.result-bar {
+.right-answer-bar {
     display: flex;
     align-items: center;
     margin-bottom: 20px;
 }
 
-
-
-
-.result-bar2 {
+.left-answer-bar {
     display: flex;
     align-items: center;
     margin-bottom: 20px;
 }
-
-
-
-
 
 .label {
     width: 20px;
@@ -92,24 +85,15 @@ h1 {
     white-space: nowrap;
 }
 
-.dog-bar-inner {
+.right-answer-ratio-bar-inner {
     /*グラフの赤線*/
     background-color: #ff6363;
-    animation: graphAnim 3s forwards;
-    /*ここで動き*/
-
 }
 
-/*上*/
-
-.cat-bar-inner {
+.left-answer-ratio-bar-inner {
     /*グラフの青線*/
     background-color: #00b1a9;
-    animation: graphAnim 3s forwards;
-    /*ここで動き*/
 }
-
-/*下*/
 
 .percentage {
     font-size: 1.2em;
@@ -125,38 +109,17 @@ h1 {
     color: #333;
 }
 
-
-@keyframes graphAnim {
-
-    /*アニメーション*/
-    /*○○秒に一回のみ*/
-    0% {
-        transform: translateX(-100%);
-        transform: scale(1);
-    }
-
-    100% {
-        transform: translateX(0);
-        transform: scale(1);
-        /*ここの値を1にすると100%で満タンになる*/
-    }
-}
-
-
 .bar-graph-wrap {
     overflow: hidden;
 }
 
 .zoom-in {
-    /*transition: 1s;*/
-    /*+1で一回稼働*/
     height: 120%;
     border-radius: 10px;
     /*角〇*/
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.3s ease;
     animation: zoomAnim 2s ease;
 }
 
@@ -168,14 +131,13 @@ h1 {
     }
 
     50% {
-        transform: scale(1.2);
+        transform: scale(1.1);
     }
 
     100% {
         transform: scale(1);
     }
 }
-
 
 /* アニメーション */
 @keyframes bounce {
@@ -200,10 +162,6 @@ h1 {
     }
 }
 
-.anime-object {
-    animation: bounce 2s linear infinite;
-}
-
 .circle {
     /*〇*/
     width: 100px;
@@ -214,43 +172,33 @@ h1 {
 }
 
 h2 {
-    /*吹き出し💭*/
-    max-width: 300px;
-    /*最大幅を制限することで膨張を抑える(1000→300へ)*/
-    max-height: 100px;
+    max-width: 250px;
     position: relative;
     padding: 1.5rem 4rem;
     border: 3px solid #d8d8d8;
-    /*吹き出しの幅*/
     border-radius: 10px;
     margin: 20px auto;
     background: #f9f9f9;
 }
 
-h2:before {
+h2:before, h2:after {
+    
+    content: '';
     position: absolute;
     bottom: -14px;
-    left: 8.45em;
-    width: 0;
-    height: 0;
-    content: '';
-    border-width: 14px 12px 0 12px;
+    left: 7.50em;
+    border-width: 14px 12px 0px;
     border-style: solid;
-    border-color: #d8d8d8 transparent transparent transparent;
+}
+
+h2:before {
+    border-color: #d8d8d8 transparent transparent;
 }
 
 h2:after {
-    position: absolute;
     bottom: -10px;
-    left: 8.45em;
-    width: 0;
-    height: 0;
-    content: '';
-    border-width: 14px 12px 0 12px;
-    border-style: solid;
-    border-color: #f9f9f9 transparent transparent transparent;
+    border-color: #f9f9f9 transparent transparent;
 }
-
 
 .fademigikara {
     animation: fade-in-migihida 1s ease-in-out 2s forwards;
@@ -258,30 +206,4 @@ h2:after {
 
 .fadehidarikara {
     animation: fade-in-hidamigi 1s ease-in-out 2s forwards;
-}
-
-/* フェードイン：左←右*/
-@keyframes fade-in-migihida {
-    0% {
-        opacity: 0;
-        transform: translateX(60px);
-    }
-
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-/* フェードイン：左→右*/
-@keyframes fade-in-hidamigi {
-    0% {
-        opacity: 0;
-        transform: translateX(-60px);
-    }
-
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
 }
