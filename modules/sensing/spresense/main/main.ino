@@ -1,4 +1,6 @@
 #include <SoftwareSerial.h>
+#include <mutex>
+#include <queue>
 #include "MQTTPublish.h"
 #include "ToF_Sensor.h"
 
@@ -8,11 +10,13 @@
 #define LR_INVERSION false
 #define LR_THRESHOLD 200
 
-int LR_result = -1;
 SoftwareSerial BT(BT_TX_PIN, BT_RX_PIN);
 
 ToF_Sensor tof_sensor;
 MQTTPublish mqttpublish;
+
+std::queue<int> sensorQueue;
+std::mutex queueMutex;
 
 pthread_t distance_sensor_process, bluetooth_process;
 
@@ -27,19 +31,27 @@ void setup() {
 
 void start_bluetooth_process() {
     String message;
+    int lr_result = -1;
+    {
+        std::lock_guard<std::mutex> lock(queueMutex);
+        if (!sensorQueue.empty()) {
+            lr_result = sensorQueue.front();
+            sensorQueue.pop();
+        }
+    }
 #if LR_INVERSION
-    if (LR_result == 0) {
+    if (lr_result == 0) {
         message = "left_count";
-    } else if (LR_result == 1) {
+    } else if (lr_result == 1) {
         message = "right_count";
     } else {
         message = "count_error";
     }
 #else
 
-    if (LR_result == 0) {
+    if (lr_result == 0) {
         message = "right_count";
-    } else if (LR_result == 1) {
+    } else if (lr_result == 1) {
         message = "left_count";
     } else {
         message = "count_error";
@@ -57,21 +69,25 @@ void start_distance_sensor() {
     */
     int counter = 0;
     uint16_t distance_value;
-    // センサからの入力値がLR_threshold以下なら「０」以上なら「１」が格納される変数
+    int lr_result = -1;
 
     while (true) {
         // try {
         distance_value = tof_sensor.get_distance();
         if (distance_value > LR_THRESHOLD) {
-            LR_result = 1;
+            lr_result = 1;
         } else if (distance_value < LR_THRESHOLD) {
-            LR_result = 0;
+            lr_result = 0;
         } else {
-            LR_result = -1;
+            lr_result = -1;
         }
-        // Serial.println(*LR_results);
+        {
+            std::lock_guard<std::mutex> lock(queueMutex);
+            sensorQueue.push(lr_result);
+        }
+        // Serial.println(lr_result);
         // } catch(...) {
-        // *LR_results = -1;
+        // lr_result = -1;
         // }
     }
 }
