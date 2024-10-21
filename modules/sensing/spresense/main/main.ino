@@ -22,6 +22,11 @@ std::queue<int> sensorQueue;
 std::mutex queueMutex;
 std::condition_variable cv;
 
+int left_count = 0;
+int right_count = 0;
+int error_count = 0;
+std::mutex countMutex;
+
 pthread_t distance_sensor_process, bluetooth_process;
 
 void setup() {
@@ -68,6 +73,16 @@ void start_bluetooth_process() {
 
         BT.println(message);      // Bluetooth送信
         Serial.println(message);  // デバッグ出力
+        {
+            std::lock_guard<std::mutex> countLock(countMutex);
+            if (lr_result == 0) {
+                right_count++;
+            } else if (lr_result == 1) {
+                left_count++;
+            } else {
+                error_count++;
+            }
+        }
     }
 }
 
@@ -100,10 +115,25 @@ unsigned int set_mqtt_flag() {
     return TIMER_INTERVAL_US;
 }
 
+void publish_mqtt_counts() {
+    String payload = "Left: " + String(left_count) +
+                     ", Right: " + String(right_count) +
+                     ", Errors: " + String(error_count);
+    mqttpublish.send(payload.c_str());  // MQTTでカウントを送信
+
+    // カウントをリセット
+    left_count = 0;
+    right_count = 0;
+    error_count = 0;
+}
+
 void loop() {
     if (mqtt_flag) {
-        mqttpublish.send("hello");
-        mqtt_flag = false;
+        {
+            std::lock_guard<std::mutex> countLock(countMutex);
+            publish_mqtt_counts();  // カウントデータをMQTTで送信
+        }
     }
+    mqtt_flag = false;
     delay(100);
 }
