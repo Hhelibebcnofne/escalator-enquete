@@ -3,12 +3,12 @@ let chartArray = [];
 
 let myObjects = [{
   canvasId: "myChart1",
-  question: "質問2",
-  Choice_Name_B: "選択肢B2",
-  Choice_Name_A: "選択肢A2",
-  value_A: 40,
-  value_B: 60,
-  value_C: 80
+  question: "質問1",
+  Choice_Name_B: "選択肢B1",
+  Choice_Name_A: "選択肢A1",
+  value_A: 100,
+  value_B: 160,
+  value_C: 260
 
 },
 {
@@ -18,7 +18,7 @@ let myObjects = [{
   Choice_Name_A: "選択肢A2",
   value_A: 40,
   value_B: 60,
-  value_C: 80
+  value_C: 100
 
 },
 ]
@@ -26,7 +26,6 @@ let myObjects = [{
 // Canvasを追加する関数
 function createCanvas(canvasId) {
   const canvas = document.createElement('canvas');
-  const canva = document.createElement('canva');
   canvas.id = canvasId;
   canvas.width = 400;
   canvas.height = 200;
