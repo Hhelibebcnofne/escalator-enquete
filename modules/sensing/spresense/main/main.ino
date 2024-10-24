@@ -27,18 +27,9 @@ int right_count = 0;
 int error_count = 0;
 std::mutex countMutex;
 
+bool mqtt_flag = false;
+
 pthread_t distance_sensor_process, bluetooth_process;
-
-void setup() {
-    Serial.begin(115200);
-    BT.begin(9600);
-    tof_sensor.setup();
-    mqttpublish.setup();
-
-    attachTimerInterrupt(set_mqtt_flag, TIMER_INTERVAL_US);
-    pthread_create(&bluetooth_process, NULL, start_bluetooth_process, NULL);
-    pthread_create(&distance_sensor_process, NULL, start_distance_sensor, NULL);
-}
 
 void start_bluetooth_process() {
     while (true) {
@@ -108,7 +99,6 @@ void start_distance_sensor() {
         delay(SENSING_RATE_MS);  // センサデータの取得周期
     }
 }
-bool mqtt_flag = false;
 
 unsigned int set_mqtt_flag() {
     mqtt_flag = true;
@@ -116,24 +106,35 @@ unsigned int set_mqtt_flag() {
 }
 
 void publish_mqtt_counts() {
-    String payload = "Left: " + String(left_count) +
-                     ", Right: " + String(right_count) +
-                     ", Errors: " + String(error_count);
+    String payload;
+    {
+        std::lock_guard<std::mutex> countLock(countMutex);
+        payload = "Left: " + String(left_count) +
+                  ", Right: " + String(right_count) +
+                  ", Errors: " + String(error_count);
+        // カウントをリセット
+        left_count = 0;
+        right_count = 0;
+        error_count = 0;
+    }
     mqttpublish.send(payload.c_str());  // MQTTでカウントを送信
+}
 
-    // カウントをリセット
-    left_count = 0;
-    right_count = 0;
-    error_count = 0;
+void setup() {
+    Serial.begin(115200);
+    BT.begin(9600);
+    tof_sensor.setup();
+    mqttpublish.setup();
+
+    attachTimerInterrupt(set_mqtt_flag, TIMER_INTERVAL_US);
+    pthread_create(&bluetooth_process, NULL, start_bluetooth_process, NULL);
+    pthread_create(&distance_sensor_process, NULL, start_distance_sensor, NULL);
 }
 
 void loop() {
     if (mqtt_flag) {
-        {
-            std::lock_guard<std::mutex> countLock(countMutex);
-            publish_mqtt_counts();  // カウントデータをMQTTで送信
-        }
+        publish_mqtt_counts();  // カウントデータをMQTTで送信
+        mqtt_flag = false;
     }
-    mqtt_flag = false;
     delay(100);
 }
