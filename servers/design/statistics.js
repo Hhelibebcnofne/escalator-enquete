@@ -25,11 +25,22 @@ let myObjects = [{
 
 // Canvasを追加する関数
 function createCanvas(canvasId) {
+  // 新しい div.row を作成
+  const rowDiv = document.createElement('div');
+  rowDiv.className = 'row mt-4';
+
+  // 新しい Canvas を作成
   const canvas = document.createElement('canvas');
   canvas.id = canvasId;
   canvas.width = 400;
   canvas.height = 200;
-  document.getElementById('canvas_list').appendChild(canvas);
+
+  // Canvas を div.row の中に追加
+  rowDiv.appendChild(canvas);
+
+  // div.row を #canvas_list の中に追加
+  document.getElementById('canvas_list').appendChild(rowDiv);
+
   return canvas;
 }
 
