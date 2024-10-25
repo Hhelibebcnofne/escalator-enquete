@@ -28,10 +28,10 @@ def create_app():
 
     mqtt.init_app(app)
 
-    # from flask_app.controllers.mqtt import mqtt_bp
-    # app.register_blueprint(mqtt_bp)
+    from flask_app.controllers.index_bp import index_bp
+    from flask_app.controllers.user_bp import user_bp
 
-    # from flask_app.controllers.sample import sample_bp
-    # app.register_blueprint(sample_bp)
+    app.register_blueprint(index_bp)
+    app.register_blueprint(user_bp)
 
     return app

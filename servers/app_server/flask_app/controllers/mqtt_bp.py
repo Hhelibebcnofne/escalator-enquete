@@ -1,7 +1,8 @@
-from flask_app import mqtt, db, create_app
+from flask import Blueprint, current_app
+from flask_app import mqtt, db
 from flask_app.models import MqttMessages
 
-app = create_app()
+mqtt_bp = Blueprint("mqtt_bp", __name__)
 
 
 @mqtt.on_connect()
@@ -13,13 +14,9 @@ def handle_connect(client, userdata, flags, rc):
 def handle_mqtt_message(client, userdata, message):
     message_text = message.payload.decode()
     print(f"Received message '{message_text}' on topic '{message.topic}'")
-    with app.app_context():
+    with current_app.app_context():
         mqtt_message = MqttMessages(
             topic=message.topic, message=message_text, qos=message.qos
         )
         db.session.add(mqtt_message)
         db.session.commit()
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
