@@ -2,7 +2,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <queue>
-#include "MQTTPublish.h"
+#include "WiFi_Module_Manager.h"
 #include "ToF_Sensor.h"
 
 #define BT_RX_PIN PIN_D00
@@ -16,7 +16,7 @@
 SoftwareSerial BT(BT_TX_PIN, BT_RX_PIN);
 
 ToF_Sensor tof_sensor;
-MQTTPublish mqttpublish;
+WiFi_Module_Manager wifi_module_manager;
 
 std::queue<int> sensorQueue;
 std::mutex queueMutex;
@@ -117,14 +117,14 @@ void publish_mqtt_counts() {
         right_count = 0;
         error_count = 0;
     }
-    mqttpublish.send(payload.c_str());  // MQTTでカウントを送信
+    wifi_module_manager.publish(payload.c_str());  // MQTTでカウントを送信
 }
 
 void setup() {
     Serial.begin(115200);
     BT.begin(9600);
-    tof_sensor.setup();
-    mqttpublish.setup();
+    // tof_sensor.setup();
+    wifi_module_manager.setup();
 
     attachTimerInterrupt(set_mqtt_flag, TIMER_INTERVAL_US);
     pthread_create(&bluetooth_process, NULL, start_bluetooth_process, NULL);
@@ -132,9 +132,12 @@ void setup() {
 }
 
 void loop() {
-    if (mqtt_flag) {
-        publish_mqtt_counts();  // カウントデータをMQTTで送信
-        mqtt_flag = false;
-    }
-    delay(100);
+    // mqtt_flag = true;
+    // if (mqtt_flag) {
+    //     publish_mqtt_counts();  // カウントデータをMQTTで送信
+    //     mqtt_flag = false;
+    // }
+
+    wifi_module_manager.subscribe();
+    delay(5000);
 }

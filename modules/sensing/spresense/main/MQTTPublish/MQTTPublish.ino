@@ -81,7 +81,7 @@ void setup() {
 bool served = false;
 uint16_t len, count = 0;
 char* send_message;
-MQTTGS2200_Mqtt mqtt;
+MQTTGS2200_Mqtt mqtt_publish;
 
 // the loop function runs over and over again forever
 void loop() {
@@ -96,8 +96,8 @@ void loop() {
         // Prepare for the next chunck of incoming data
         WiFi_InitESCBuffer();
         // Start the loop to send the data
-        strncpy(mqtt.params.topic, MQTT_TOPIC, sizeof(mqtt.params.topic));
-        mqtt.params.QoS = 0;
+        strncpy(mqtt_publish.params.topic, MQTT_PUBLISH_TOPIC, sizeof(mqtt_publish.params.topic));
+        mqtt_publish.params.QoS = 0;
 
         while (served) {
             if (count % 2 == 0) {
@@ -106,13 +106,13 @@ void loop() {
                 send_message = "1";
             }
 
-            strcpy(mqtt.params.message, send_message);
-            snprintf(mqtt.params.message, sizeof(mqtt.params.message), "%d",
+            strcpy(mqtt_publish.params.message, send_message);
+            snprintf(mqtt_publish.params.message, sizeof(mqtt_publish.params.message), "%d",
                      (int)atoi(send_message));
             count++;
 
-            mqtt.params.len = strlen(mqtt.params.message);
-            if (true == theMqttGs2200.publish(&mqtt)) {
+            mqtt_publish.params.len = strlen(mqtt_publish.params.message);
+            if (true == theMqttGs2200.publish(&mqtt_publish)) {
                 Serial.println(send_message);
             }
 
