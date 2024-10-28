@@ -32,12 +32,14 @@ def create_app():
     mqtt.init_app(app)
 
     from flask_app.controllers.index_bp import index_bp
-    from flask_app.controllers.mqtt_bp import mqtt_bp
+    from servers.app_server.flask_app.controllers.mqtt_subscribe_bp import (
+        mqtt_subscribe_bp,
+    )
     from flask_app.controllers.question_bp import question_bp
     from flask_app.controllers.user_bp import user_bp
 
     app.register_blueprint(index_bp)
-    app.register_blueprint(mqtt_bp)
+    app.register_blueprint(mqtt_subscribe_bp)
     app.register_blueprint(question_bp)
     app.register_blueprint(user_bp)
 

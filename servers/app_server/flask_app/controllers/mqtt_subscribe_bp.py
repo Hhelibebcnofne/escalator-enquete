@@ -2,7 +2,7 @@ from flask import Blueprint
 from flask_app import mqtt, db, logger
 from flask_app.models import MqttMessages
 
-mqtt_bp = Blueprint("mqtt_bp", __name__)
+mqtt_subscribe_bp = Blueprint("mqtt_subscribe_bp", __name__)
 
 
 @mqtt.on_connect()
