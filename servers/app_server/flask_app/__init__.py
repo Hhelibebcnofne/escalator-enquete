@@ -3,6 +3,9 @@ from flask_vite import Vite
 from flask_inertia import Inertia
 from flask_sqlalchemy import SQLAlchemy
 from flask_mqtt import Mqtt
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 db = SQLAlchemy()
 inertia = Inertia()
@@ -29,9 +32,13 @@ def create_app():
     mqtt.init_app(app)
 
     from flask_app.controllers.index_bp import index_bp
+    from flask_app.controllers.mqtt_bp import mqtt_bp
+    from flask_app.controllers.question_bp import question_bp
     from flask_app.controllers.user_bp import user_bp
 
     app.register_blueprint(index_bp)
+    app.register_blueprint(mqtt_bp)
+    app.register_blueprint(question_bp)
     app.register_blueprint(user_bp)
 
     return app

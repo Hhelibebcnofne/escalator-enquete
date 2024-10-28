@@ -6,7 +6,7 @@ index_bp = Blueprint("index", __name__)
 
 
 @index_bp.route("/")
-def hello_world():
+def index():
     data = {}
     return render_inertia(
         component_name="Index",
