@@ -32,7 +32,7 @@ def create_app():
     mqtt.init_app(app)
 
     from flask_app.controllers.index_bp import index_bp
-    from servers.app_server.flask_app.controllers.mqtt_subscribe_bp import (
+    from flask_app.controllers.mqtt_subscribe_bp import (
         mqtt_subscribe_bp,
     )
     from flask_app.controllers.question_bp import question_bp
