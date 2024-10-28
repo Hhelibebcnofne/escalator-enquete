@@ -1,14 +1,9 @@
 from flask_app import db
-from flask import Blueprint, send_from_directory, request, redirect, url_for
+from flask import Blueprint, request, redirect, url_for
 from flask_inertia import render_inertia
 from flask_app.models import User
 
 user_bp = Blueprint("user", __name__)
-
-
-@user_bp.route("/_vite-static/<path:path>")
-def send_public(path):
-    return send_from_directory("vite/dist", path)
 
 
 @user_bp.route("/users/create", methods=["GET"])
