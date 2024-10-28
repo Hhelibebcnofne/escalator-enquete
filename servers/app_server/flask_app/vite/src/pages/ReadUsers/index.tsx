@@ -1,13 +1,9 @@
 import { FC } from "react";
+import { Users } from "../../utils/types";
 
 interface ReadUsersProps {
-  users: User[];
+  users: Users;
 }
-
-export type User = {
-  id: number;
-  name: string;
-};
 
 const ReadUsers: FC<ReadUsersProps> = ({ users }) => {
   const handleDeleteUser = (id: number) => {
@@ -23,10 +19,12 @@ const ReadUsers: FC<ReadUsersProps> = ({ users }) => {
       {users.map((user) => (
         <>
           <div key={user.id}>
-            <p>{user.name}</p>
+            <p>
+              {user.id} {user.name}
+            </p>
           </div>
           <div>
-            <a href={`/users/${user.id}`}>Update </a>
+            <a href={`/users/edit/${user.id}`}>Update </a>
             <a
               onClick={() => handleDeleteUser(user.id)}
               style={{ cursor: "pointer" }}
