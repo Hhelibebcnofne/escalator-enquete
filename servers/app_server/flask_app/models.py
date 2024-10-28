@@ -25,7 +25,7 @@ class User(db.Model):
         }
 
 
-class Mqtt(db.Model):
+class MqttMessages(db.Model):
     __tablename__ = "mqtt_messages"
     id: int = db.Column(db.Integer, primary_key=True)
     topic: str = db.Column(db.String(255))
