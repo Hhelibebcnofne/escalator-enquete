@@ -4,7 +4,6 @@ from flask_inertia import Inertia
 from flask_sqlalchemy import SQLAlchemy
 from flask_mqtt import Mqtt
 from flask_wtf import CSRFProtect
-from flask_sslify import SSLify
 from logging import getLogger
 
 logger = getLogger(__name__)
@@ -19,10 +18,6 @@ def create_app():
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_pyfile("config.py")
     app.config["JSON_AS_ASCII"] = False
-
-    # sslify
-    # don't delete if it's not used
-    sslify = SSLify(app)  # noqa: F841
 
     # csrf protection
     # don't delete if it's not used
