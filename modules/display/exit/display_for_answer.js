@@ -1,11 +1,11 @@
 let right_answer_description = "🐶 犬";
 let left_answer_description = "🐱 猫";
-//let aa = "左,右";
-let aa = "パン,コメ";
-//let aa = "left_count,right_count";
-let a = aa.split(",");
-let right_return = a[1];
-let left_return = a[0];
+//let value = "左,右";
+let value = "🍞 パン,🍚 コメ";
+//let value = "left_count,right_count";
+let list = value.split(",");
+let right_return = list[1];
+let left_return = list[0];
 let right_counter = 0;
 let left_counter = 0;
 let total_person_count = 0;
