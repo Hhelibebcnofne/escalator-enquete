@@ -20,7 +20,7 @@ function count_up(reception_text) {
     left_counter += 1;
 
   } else if (reception_text == "  ") {
-    console.log("error");
+    console.log("count_error");
     return;
   }else {
     const questions = reception_text.split(",")
@@ -123,6 +123,7 @@ setInterval(() => {
     count_up("left_count");//左
   } else {
     count_up("right_count");//右
+    
   }
   c += 1
 }, 3000);
