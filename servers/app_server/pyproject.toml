@@ -13,6 +13,7 @@ dependencies = [
     "python-dotenv>=1.0.1",
     "flask-mqtt>=1.2.1",
     "flask-wtf>=1.2.2",
+    "flask-migrate>=4.0.7",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
