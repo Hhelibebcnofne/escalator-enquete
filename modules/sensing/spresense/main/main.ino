@@ -12,6 +12,8 @@
 #define LR_THRESHOLD 200
 #define TIMER_INTERVAL_US 10000000
 #define SENSING_RATE_MS 1000
+#define  SUBSCRIBE_TIMEOUT 1000	//
+#define  CONSOLE_BAUDRATE  115200
 
 SoftwareSerial BT(BT_TX_PIN, BT_RX_PIN);
 
@@ -117,13 +119,20 @@ void publish_mqtt_counts() {
         right_count = 0;
         error_count = 0;
     }
-    wifi_module_manager.publish(payload.c_str());  // MQTTでカウントを送信
+    wifi_module_manager.mqttPublish(payload.c_str());  // MQTTでカウントを送信
+}
+
+void initLED() {
+    pinMode(LED0, OUTPUT);
+    digitalWrite(LED0, LOW);   // LEDを消灯
+    Serial.println("LEDの初期化が完了し、消灯しました。");
 }
 
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(CONSOLE_BAUDRATE); // PCとの通信
     BT.begin(9600);
-    // tof_sensor.setup();
+    initLED();
+    tof_sensor.setup();
     wifi_module_manager.setup();
 
     attachTimerInterrupt(set_mqtt_flag, TIMER_INTERVAL_US);
@@ -132,12 +141,36 @@ void setup() {
 }
 
 void loop() {
-    // mqtt_flag = true;
-    // if (mqtt_flag) {
-    //     publish_mqtt_counts();  // カウントデータをMQTTで送信
-    //     mqtt_flag = false;
-    // }
+    static bool publishing = true; // どちらの処理を行うかのフラグ
+    static unsigned long lastActionTime = 0; // 最後の処理を行った時刻
 
-    wifi_module_manager.subscribe();
-    delay(5000);
+    // 再接続の処理
+    if (publishing) {
+        // // Publishモード時の再接続
+        if (!wifi_module_manager.initMQTT()) {
+            Serial.println("MQTTの再接続に失敗しました。処理を停止します。");
+            while (1);
+        }
+        Serial.println("MQTTに再接続しました (Publish モード)");
+        
+        // // Publish 処理
+        publish_mqtt_counts();  // カウントデータをMQTTで送信
+        lastActionTime = millis();
+        publishing = false; // 次は subscribe を実行
+    } else {
+        // Subscribeモード時の再接続
+        if (!wifi_module_manager.initMQTT()) {
+            Serial.println("MQTTの再接続に失敗しました。処理を停止します。");
+            while (1);
+        }
+        Serial.println("MQTTに再接続しました (Subscribe モード)");
+        
+        // Subscribe 処理
+        wifi_module_manager.mqttSubscribe();
+        lastActionTime = millis();
+        publishing = true; // 次は publish を実行
+    }
+
+    // ※短すぎるとエラーになる
+    delay(5000); // 切り替え間隔を調整
 }

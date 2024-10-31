@@ -3,13 +3,12 @@
 #include <stdio.h>
 #include "config.h"
 
-#define CONSOLE_BAUDRATE 115200
+#define SUBSCRIBE_TIMEOUT 1000
 
 class WiFi_Module_Manager {
    private:
     TelitWiFi gs2200;
     TWIFI_Params gsparams;
-    // MqttGs2200 theMqttGs2200(&gs2200);
     MqttGs2200 theMqttGs2200 = MqttGs2200(&gs2200);
 
     bool publish_served = false;
@@ -22,8 +21,10 @@ class WiFi_Module_Manager {
    public:
     WiFi_Module_Manager(/* args */);
     // ~MQTTPublish();
-    void setup();
-    void publish(char* send_message);
-    void subscribe();
-    void start_subscribe_process();
+    bool setup();
+    bool initWiFi();
+    bool initMQTT();
+
+    bool mqttPublish(char* send_message);
+    bool mqttSubscribe();
 };
