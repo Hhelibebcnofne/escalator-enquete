@@ -1,14 +1,17 @@
 import { FC } from "react";
 import { User } from "../../utils/types";
+import { getCsrfToken } from "../../utils/csrf";
 
 interface ReadUserProps {
   user: User;
 }
 
 const ReadUser: FC<ReadUserProps> = ({ user }) => {
+  const csrfToken = getCsrfToken();
   const handleDeleteUser = (id: number) => {
     fetch(`/users/${id}`, {
       method: "delete",
+      headers: csrfToken ? { "X-CSRF-Token": csrfToken } : {},
     }).then(() => {
       window.location.href = "/users";
     });

@@ -1,17 +1,22 @@
 import { ChangeEvent, FC, useState } from "react";
+import { getCsrfToken } from "../../utils/csrf";
 
 const Create: FC = () => {
   const [userName, setUserName] = useState("");
   const handleUserNameChange = (event: ChangeEvent<HTMLInputElement>) => {
     setUserName(event.target.value);
   };
+  const csrfToken = getCsrfToken();
   const handleFormSubmit = (event: ChangeEvent<HTMLFormElement>) => {
     event.preventDefault();
     fetch(`/users`, {
       method: "post",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: csrfToken
+        ? {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken,
+          }
+        : { "Content-Type": "application/json" },
       body: JSON.stringify({ name: userName }),
     }).then(() => {
       window.location.href = "/users";
