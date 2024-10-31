@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_mqtt import Mqtt
 from flask_wtf import CSRFProtect
 from logging import getLogger
+from flask_migrate import Migrate
 
 logger = getLogger(__name__)
 
@@ -25,6 +26,8 @@ def create_app():
 
     # database
     db.init_app(app)
+    # don't delete if it's not used
+    migrate = Migrate(app, db)  # noqa: F841
     # don't delete if it's not used
     from flask_app import models  # noqa: F401
 
