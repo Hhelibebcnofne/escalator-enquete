@@ -20,30 +20,55 @@ function count_up(reception_text) {
     left_counter += 1;
 
   } else if (reception_text == "count_error") {
-    console.log("error");
+    console.error("error");
     return;
   }else {
     const questions = reception_text.split(",")
     document.getElementById("right-answer-description").textContent = questions[1];
     document.getElementById("left-answer-description").textContent = questions[0];
+
+    right_counter = 0;
+    left_counter = 0;
+    total_person_count = 0;
+
+    // 表示の更新
+    document.getElementById("right-answer-ratio").textContent = "0%";
+    document.getElementById("left-answer-ratio").textContent = "0%";
+    document.querySelector(".right-answer-ratio-bar-inner").style.width = "0%";
+    document.querySelector(".left-answer-ratio-bar-inner").style.width = "0%";
+    document.getElementById("total-person-count").textContent = total_person_count;
+    return;
  }
-
-
-
+  // パーセンテージとグラフを再計算して表示更新
   animation_for_bar(reception_text);
   total_person_count = right_counter + left_counter;
-  let right_answer_ratio = Math.floor((right_counter / total_person_count * 100));
+  let right_answer_ratio = total_person_count > 0 ? Math.floor((right_counter / total_person_count) * 100) : 0;
   let left_answer_ratio = 100 - right_answer_ratio;
-  right_answer_ratio = right_answer_ratio.toString()
-  left_answer_ratio = left_answer_ratio.toString()
+  right_answer_ratio = right_answer_ratio.toString();
+  left_answer_ratio = left_answer_ratio.toString();
 
   document.getElementById("right-answer-ratio").textContent = right_answer_ratio + "%";
-  document.querySelector(".right-answer-ratio-bar-inner").style.width = right_answer_ratio + "%";//グラフの幅を変更
-  // HTML内の数値とグラフの幅を更新
+  document.querySelector(".right-answer-ratio-bar-inner").style.width = right_answer_ratio + "%";
   document.getElementById("left-answer-ratio").textContent = left_answer_ratio + "%";
-  document.querySelector(".left-answer-ratio-bar-inner").style.width = left_answer_ratio + "%";//グラフの幅を変更
-
+  document.querySelector(".left-answer-ratio-bar-inner").style.width = left_answer_ratio + "%";
   document.getElementById("total-person-count").textContent = total_person_count;
+
+
+
+  // animation_for_bar(reception_text);
+  // total_person_count = right_counter + left_counter;
+  // let right_answer_ratio = Math.floor((right_counter / total_person_count * 100));
+  // let left_answer_ratio = 100 - right_answer_ratio;
+  // right_answer_ratio = right_answer_ratio.toString()
+  // left_answer_ratio = left_answer_ratio.toString()
+
+  // document.getElementById("right-answer-ratio").textContent = right_answer_ratio + "%";
+  // document.querySelector(".right-answer-ratio-bar-inner").st yle.width = right_answer_ratio + "%";//グラフの幅を変更
+  // // HTML内の数値とグラフの幅を更新
+  // document.getElementById("left-answer-ratio").textContent = left_answer_ratio + "%";
+  // document.querySelector(".left-answer-ratio-bar-inner").style.width = left_answer_ratio + "%";//グラフの幅を変更
+
+  // document.getElementById("total-person-count").textContent = total_person_count;
 }
 
 
@@ -123,7 +148,10 @@ setInterval(() => {
     count_up("left_count");//左
   } else {
     count_up("right_count");//右
-    
+  }
+
+  if ((c + 1) % 5 == 0) {
+    count_up("sample1,sample2");
   }
   c += 1
 }, 3000);
