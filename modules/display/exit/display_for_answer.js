@@ -1,11 +1,5 @@
 let right_answer_description = "🐶 犬";
 let left_answer_description = "🐱 猫";
-//let value = "左,右";
-let value = "🍞 パン,🍚 コメ";
-//let value = "left_count,right_count";
-let list = value.split(",");
-let right_return = list[1];
-let left_return = list[0];
 let right_counter = 0;
 let left_counter = 0;
 let total_person_count = 0;
@@ -15,11 +9,6 @@ const serialUUID = 0xFFE1;
 let device;
 let serialCharacteristic;
 
-if (right_return == "right_count" && left_return == "left_count") {
-} else if (right_return != right_answer_description && left_return != left_answer_description) {
-  right_answer_description = right_return;
-  left_answer_description = left_return;
-}
 
 function count_up(reception_text) {
   console.log(reception_text);
@@ -30,16 +19,16 @@ function count_up(reception_text) {
   } else if (reception_text == "left_count") {
     left_counter += 1;
 
-  } else if (reception_text == right_return) {
-    right_counter += 1;
-
-  } else if (reception_text == left_return) {
-    left_counter += 1;
-
-  } else {
+  } else if (reception_text == "  ") {
     console.log("error");
     return;
-  }
+  }else {
+    const questions = reception_text.split(",")
+    document.getElementById("right-answer-description").textContent = questions[1];
+    document.getElementById("left-answer-description").textContent = questions[0];
+ }
+
+
 
   animation_for_bar(reception_text);
   total_person_count = right_counter + left_counter;
@@ -61,7 +50,7 @@ function count_up(reception_text) {
 const sleep = (time) => new Promise((r) => setTimeout(r, time));//timeはミリ秒
 async function animation_for_bar(reception_text) {
   let element_name;
-  if (reception_text === right_return) {
+  if (reception_text === "right_count") {
     element_name = "right";
   } else {
     element_name = "left"
@@ -131,9 +120,9 @@ function read(event) {
 let c = 0
 setInterval(() => {
   if (c % 2 == 0) {
-    count_up(left_return);//左
+    count_up("left_count");//左
   } else {
-    count_up(right_return);//右
+    count_up("right_count");//右
   }
   c += 1
 }, 3000);
