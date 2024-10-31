@@ -171,6 +171,7 @@ void loop() {
         publishing = true; // 次は publish を実行
     }
 
-    // ※短すぎるとエラーになる
-    delay(5000); // 切り替え間隔を調整
+    // ※短すぎるとエラーになるが、長いとERROR: Stack pointer is not within the stackになる
+    // delay(5000); // 切り替え間隔を調整
+    
 }
