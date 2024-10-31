@@ -1,5 +1,6 @@
 import { ChangeEvent, FC, useState } from "react";
-import { User } from "../ReadUsers/index";
+import { User } from "../../utils/types";
+import { getCsrfToken } from "../../utils/csrf";
 
 interface UpdateUsersProps {
   user: User;
@@ -10,13 +11,17 @@ const Update: FC<UpdateUsersProps> = ({ user }) => {
   const handleUserNameChange = (event: ChangeEvent<HTMLInputElement>) => {
     setUserName(event.target.value);
   };
+  const csrfToken = getCsrfToken();
   const handleFormSubmit = (event: ChangeEvent<HTMLFormElement>) => {
     event.preventDefault();
     fetch(`/users/${user.id}`, {
       method: "put",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: csrfToken
+        ? {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": csrfToken,
+          }
+        : { "Content-Type": "application/json" },
       body: JSON.stringify({ name: userName }),
     }).then(() => {
       window.location.href = "/users";
