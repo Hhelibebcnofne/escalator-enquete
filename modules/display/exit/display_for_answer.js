@@ -19,8 +19,8 @@ function count_up(reception_text) {
   } else if (reception_text == "left_count") {
     left_counter += 1;
 
-  } else if (reception_text == "  ") {
-    console.log("count_error");
+  } else if (reception_text == "count_error") {
+    console.log("error");
     return;
   }else {
     const questions = reception_text.split(",")
