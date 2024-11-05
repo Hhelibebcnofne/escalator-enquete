@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "config.h"
 
-#define SUBSCRIBE_TIMEOUT 1000
+#define SUBSCRIBE_TIMEOUT 2000
 
 class WiFi_Module_Manager {
    private:
