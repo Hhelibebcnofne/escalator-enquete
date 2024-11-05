@@ -1,5 +1,4 @@
-from venv import logger
-from flask_app import db
+from flask_app import db, logger
 from flask import Blueprint, request, jsonify
 from flask_inertia import render_inertia
 from flask_app.models import User
