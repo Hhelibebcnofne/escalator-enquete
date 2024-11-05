@@ -21,7 +21,7 @@ function count_up(reception_text) {
   } else if (reception_text == "count_error") {
     console.error("sensor count error");
     return;
-  } else if (reception_text != "left_count" || reception_text != "right_count") {
+  } else if ((reception_text.split(",").length) == 2) {
     const questions = reception_text.split(",")
     document.getElementById("right-answer-description").textContent = questions[1];
     document.getElementById("left-answer-description").textContent = questions[0];
