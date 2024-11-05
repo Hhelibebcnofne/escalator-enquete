@@ -9,7 +9,6 @@ const serialUUID = 0xFFE1;
 let device;
 let serialCharacteristic;
 
-
 function count_up(reception_text) {
   console.log(reception_text);
 
@@ -20,9 +19,9 @@ function count_up(reception_text) {
     left_counter += 1;
 
   } else if (reception_text == "count_error") {
-    console.error("error");
+    console.error("sensor count error");
     return;
-  }else {
+  } else if (reception_text != "left_count" || reception_text != "right_count") {
     const questions = reception_text.split(",")
     document.getElementById("right-answer-description").textContent = questions[1];
     document.getElementById("left-answer-description").textContent = questions[0];
@@ -38,7 +37,9 @@ function count_up(reception_text) {
     document.querySelector(".left-answer-ratio-bar-inner").style.width = "0%";
     document.getElementById("total-person-count").textContent = total_person_count;
     return;
- }
+  } else {
+    console.error("data format error");
+  }
   // パーセンテージとグラフを再計算して表示更新
   animation_for_bar(reception_text);
   total_person_count = right_counter + left_counter;
@@ -52,25 +53,7 @@ function count_up(reception_text) {
   document.getElementById("left-answer-ratio").textContent = left_answer_ratio + "%";
   document.querySelector(".left-answer-ratio-bar-inner").style.width = left_answer_ratio + "%";
   document.getElementById("total-person-count").textContent = total_person_count;
-
-
-
-  // animation_for_bar(reception_text);
-  // total_person_count = right_counter + left_counter;
-  // let right_answer_ratio = Math.floor((right_counter / total_person_count * 100));
-  // let left_answer_ratio = 100 - right_answer_ratio;
-  // right_answer_ratio = right_answer_ratio.toString()
-  // left_answer_ratio = left_answer_ratio.toString()
-
-  // document.getElementById("right-answer-ratio").textContent = right_answer_ratio + "%";
-  // document.querySelector(".right-answer-ratio-bar-inner").st yle.width = right_answer_ratio + "%";//グラフの幅を変更
-  // // HTML内の数値とグラフの幅を更新
-  // document.getElementById("left-answer-ratio").textContent = left_answer_ratio + "%";
-  // document.querySelector(".left-answer-ratio-bar-inner").style.width = left_answer_ratio + "%";//グラフの幅を変更
-
-  // document.getElementById("total-person-count").textContent = total_person_count;
 }
-
 
 const sleep = (time) => new Promise((r) => setTimeout(r, time));//timeはミリ秒
 async function animation_for_bar(reception_text) {
@@ -86,7 +69,6 @@ async function animation_for_bar(reception_text) {
   document.querySelector(`.${element_name}-answer-bar`).classList.remove("zoom-in");
 }
 
-
 window.onload = function () {
   // 初期値をHTMLに挿入
   document.getElementById("right-answer-ratio").textContent = right_counter + "%";
@@ -101,7 +83,6 @@ window.onload = function () {
 
   bluetooth_connect_button_element.addEventListener("click", connect);
 }
-
 
 bluetooth_connect_button_element = document.getElementById('bluetooth-connect-button');
 async function connect() {
@@ -124,14 +105,12 @@ async function connect() {
   bluetooth_connect_button_element.textContent = "Disconnect";
 }
 
-
 function disconnect() {
   device.gatt.disconnect();
   bluetooth_connect_button_element.removeEventListener("click", disconnect);
   bluetooth_connect_button_element.addEventListener("click", connect);
   bluetooth_connect_button_element.textContent = "Connect";
 }
-
 
 function read(event) {
   let buffer = event.target.value.buffer;
