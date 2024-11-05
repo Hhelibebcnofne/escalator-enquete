@@ -168,7 +168,10 @@ bool get_question_mqtt_subscribe (WiFi_Module_Manager& wifi_manager) {
 void loop() {
     // ※短すぎるとエラーになるが、長いとERROR: Stack pointer is not within the stackになる
     // delay(5000); // 切り替え間隔を調整
-    get_question_mqtt_subscribe(wifi_module_manager);
-    send_count_mqtt_publish(wifi_module_manager);
+    if (mqtt_flag) {
+        get_question_mqtt_subscribe(wifi_module_manager);
+        send_count_mqtt_publish(wifi_module_manager);
+        mqtt_flag = false;
+    }
     
 }
