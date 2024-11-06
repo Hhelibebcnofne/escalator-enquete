@@ -2,8 +2,8 @@
 #include <condition_variable>
 #include <mutex>
 #include <queue>
-#include "WiFi_Module_Manager.h"
 #include "ToF_Sensor.h"
+#include "WiFi_Module_Manager.h"
 
 #define BT_RX_PIN PIN_D00
 #define BT_TX_PIN PIN_D01
@@ -12,8 +12,8 @@
 #define LR_THRESHOLD 200
 #define TIMER_INTERVAL_US 10000000
 #define SENSING_RATE_MS 1000
-#define  SUBSCRIBE_TIMEOUT 1000	//
-#define  CONSOLE_BAUDRATE  115200
+#define SUBSCRIBE_TIMEOUT 1000
+#define CONSOLE_BAUDRATE 115200
 
 SoftwareSerial BT(BT_TX_PIN, BT_RX_PIN);
 
@@ -124,12 +124,12 @@ void publish_mqtt_counts(WiFi_Module_Manager& wifi_manager) {
 
 void initLED() {
     pinMode(LED0, OUTPUT);
-    digitalWrite(LED0, LOW);   // LEDを消灯
+    digitalWrite(LED0, LOW);  // LEDを消灯
     Serial.println("LEDの初期化が完了し、消灯しました。");
 }
 
 void setup() {
-    Serial.begin(CONSOLE_BAUDRATE); // PCとの通信
+    Serial.begin(CONSOLE_BAUDRATE);  // PCとの通信
     BT.begin(9600);
     initLED();
     tof_sensor.setup();
@@ -140,20 +140,20 @@ void setup() {
     pthread_create(&distance_sensor_process, NULL, start_distance_sensor, NULL);
 }
 
-bool send_count_mqtt_publish (WiFi_Module_Manager& wifi_manager) {
-        // // Publishモード時の再接続
-        if (wifi_manager.initMQTT()) {
-            Serial.println("MQTTに再接続しました (Publish モード)");
-            // // Publish 処理
-            publish_mqtt_counts(wifi_manager);  // カウントデータをMQTTで送信
-            return true;
-        } else {
-            Serial.println("MQTTの再接続に失敗しました。処理を停止します。");
-            return false;
-        }
+bool send_count_mqtt_publish(WiFi_Module_Manager& wifi_manager) {
+    // // Publishモード時の再接続
+    if (wifi_manager.initMQTT()) {
+        Serial.println("MQTTに再接続しました (Publish モード)");
+        // // Publish 処理
+        publish_mqtt_counts(wifi_manager);  // カウントデータをMQTTで送信
+        return true;
+    } else {
+        Serial.println("MQTTの再接続に失敗しました。処理を停止します。");
+        return false;
+    }
 }
 
-bool get_question_mqtt_subscribe (WiFi_Module_Manager& wifi_manager) {
+bool get_question_mqtt_subscribe(WiFi_Module_Manager& wifi_manager) {
     if (wifi_manager.initMQTT()) {
         Serial.println("MQTTに再接続しました (Subscribe モード)");
         // Subscribe 処理
@@ -166,12 +166,11 @@ bool get_question_mqtt_subscribe (WiFi_Module_Manager& wifi_manager) {
 }
 
 void loop() {
-    // ※短すぎるとエラーになるが、長いとERROR: Stack pointer is not within the stackになる
-    // delay(5000); // 切り替え間隔を調整
+    // ※短すぎるとエラーになるが、長いとERROR: Stack pointer is not within the
+    // stackになる delay(5000); // 切り替え間隔を調整
     if (mqtt_flag) {
         get_question_mqtt_subscribe(wifi_module_manager);
         send_count_mqtt_publish(wifi_module_manager);
         mqtt_flag = false;
     }
-    
 }
