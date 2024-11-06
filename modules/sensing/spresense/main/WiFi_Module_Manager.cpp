@@ -2,7 +2,7 @@
 
 WiFi_Module_Manager::WiFi_Module_Manager() {
     TelitWiFi gs2200;
-    MqttGs2200 theMqttGs2200(&gs2200);    
+    MqttGs2200 theMqttGs2200(&gs2200);
     TWIFI_Params gsparams;
     bool publish_served = false;
     bool subscribe_served = false;
@@ -10,20 +10,22 @@ WiFi_Module_Manager::WiFi_Module_Manager() {
 }
 
 bool WiFi_Module_Manager::setup() {
-    Init_GS2200_SPI_type(iS110B_TypeC); // GS2200のSPI初期化
+    Init_GS2200_SPI_type(iS110B_TypeC);  // GS2200のSPI初期化
     // initLED(); // LEDの初期化
 
     if (!initWiFi()) {
         Serial.println("Wi-Fiの初期化に失敗しました。処理を停止します。");
-        while (1);
+        while (1)
+            ;
     }
 
     if (!initMQTT()) {
         Serial.println("MQTTの初期化に失敗しました。処理を停止します。");
-        while (1);
+        while (1)
+            ;
     }
-    
-    digitalWrite(LED0, HIGH); // LEDを点灯
+
+    digitalWrite(LED0, HIGH);  // LEDを点灯
     Serial.println("LEDを点灯しました。");
 }
 
@@ -68,7 +70,7 @@ bool WiFi_Module_Manager::mqttPublish(char* send_message) {
     Serial.println("MQTTメッセージの送信準備中");
     WiFi_InitESCBuffer();
     MQTTGS2200_Mqtt mqtt;
-    
+
     // Publishトピックを指定
     strncpy(mqtt.params.topic, MQTT_PUBLISH_TOPIC, sizeof(mqtt.params.topic));
     mqtt.params.QoS = 0;
@@ -82,7 +84,8 @@ bool WiFi_Module_Manager::mqttPublish(char* send_message) {
     if (theMqttGs2200.publish(&mqtt)) {
         Serial.println("送信したメッセージ: " + String(send_message));
     } else {
-        Serial.println("メッセージの送信に失敗しました: " + String(send_message));
+        Serial.println("メッセージの送信に失敗しました: " +
+                       String(send_message));
         return false;
     }
     theMqttGs2200.stop();
@@ -92,7 +95,7 @@ bool WiFi_Module_Manager::mqttPublish(char* send_message) {
 bool WiFi_Module_Manager::mqttSubscribe() {
     Serial.println("MQTTメッセージの受信準備中");
     MQTTGS2200_Mqtt mqtt;
-    
+
     // Subscribeトピックを指定
     strncpy(mqtt.params.topic, MQTT_SUBSCRIBE_TOPIC, sizeof(mqtt.params.topic));
     mqtt.params.QoS = 0;

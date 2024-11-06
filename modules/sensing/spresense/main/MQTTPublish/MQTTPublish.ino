@@ -96,7 +96,8 @@ void loop() {
         // Prepare for the next chunck of incoming data
         WiFi_InitESCBuffer();
         // Start the loop to send the data
-        strncpy(mqtt_publish.params.topic, MQTT_PUBLISH_TOPIC, sizeof(mqtt_publish.params.topic));
+        strncpy(mqtt_publish.params.topic, MQTT_PUBLISH_TOPIC,
+                sizeof(mqtt_publish.params.topic));
         mqtt_publish.params.QoS = 0;
 
         while (served) {
@@ -107,7 +108,8 @@ void loop() {
             }
 
             strcpy(mqtt_publish.params.message, send_message);
-            snprintf(mqtt_publish.params.message, sizeof(mqtt_publish.params.message), "%d",
+            snprintf(mqtt_publish.params.message,
+                     sizeof(mqtt_publish.params.message), "%d",
                      (int)atoi(send_message));
             count++;
 

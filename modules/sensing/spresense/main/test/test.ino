@@ -2,8 +2,8 @@
 #include <TelitWiFi.h>
 #include "config.h"
 
-#define  CONSOLE_BAUDRATE  115200
-#define  SUBSCRIBE_TIMEOUT 1000	//ms
+#define CONSOLE_BAUDRATE 115200
+#define SUBSCRIBE_TIMEOUT 1000  // ms
 
 TelitWiFi gs2200;
 TWIFI_Params gsparams;
@@ -12,7 +12,7 @@ MqttGs2200 theMqttGs2200(&gs2200);
 // LEDの初期化
 void initLED() {
     pinMode(LED0, OUTPUT);
-    digitalWrite(LED0, LOW);   // LEDを消灯
+    digitalWrite(LED0, LOW);  // LEDを消灯
     Serial.println("LEDの初期化が完了し、消灯しました。");
 }
 
@@ -60,7 +60,7 @@ void mqttPublish() {
     Serial.println("MQTTメッセージの送信準備中");
     WiFi_InitESCBuffer();
     MQTTGS2200_Mqtt mqtt;
-    
+
     // Publishトピックを指定
     strncpy(mqtt.params.topic, MQTT_PUBLISH_TOPIC, sizeof(mqtt.params.topic));
     mqtt.params.QoS = 0;
@@ -81,7 +81,7 @@ void mqttPublish() {
 void mqttSubscribe() {
     Serial.println("MQTTメッセージの受信準備中");
     MQTTGS2200_Mqtt mqtt;
-    
+
     // Subscribeトピックを指定
     strncpy(mqtt.params.topic, MQTT_SUBSCRIBE_TOPIC, sizeof(mqtt.params.topic));
     mqtt.params.QoS = 0;
@@ -95,50 +95,54 @@ void mqttSubscribe() {
 }
 
 void setup() {
-    Serial.begin(CONSOLE_BAUDRATE); // PCとの通信
-    Init_GS2200_SPI_type(iS110B_TypeC); // GS2200のSPI初期化
-    initLED(); // LEDの初期化
+    Serial.begin(CONSOLE_BAUDRATE);      // PCとの通信
+    Init_GS2200_SPI_type(iS110B_TypeC);  // GS2200のSPI初期化
+    initLED();                           // LEDの初期化
 
     if (!initWiFi()) {
         Serial.println("Wi-Fiの初期化に失敗しました。処理を停止します。");
-        while (1);
+        while (1)
+            ;
     }
 
     if (!initMQTT()) {
         Serial.println("MQTTの初期化に失敗しました。処理を停止します。");
-        while (1);
+        while (1)
+            ;
     }
-    
-    digitalWrite(LED0, HIGH); // LEDを点灯
+
+    digitalWrite(LED0, HIGH);  // LEDを点灯
     Serial.println("LEDを点灯しました。");
 }
 
 void loop() {
-    static bool publishing = true; // どちらの処理を行うかのフラグ
-    static unsigned long lastActionTime = 0; // 最後の処理を行った時刻
+    static bool publishing = true;  // どちらの処理を行うかのフラグ
+    static unsigned long lastActionTime = 0;  // 最後の処理を行った時刻
 
     // 再接続の処理
     if (publishing) {
         // Publishモード時の再接続
         if (!initMQTT()) {
             Serial.println("MQTTの再接続に失敗しました。処理を停止します。");
-            while (1);
+            while (1)
+                ;
         }
         Serial.println("MQTTに再接続しました (Publish モード)");
-        
+
         // Publish 処理
         mqttPublish();
-        theMqttGs2200.stop(); // Publish後に接続を停止
+        theMqttGs2200.stop();  // Publish後に接続を停止
         lastActionTime = millis();
-        publishing = false; // 次は subscribe を実行
+        publishing = false;  // 次は subscribe を実行
     } else {
         // Subscribeモード時の再接続
         if (!initMQTT()) {
             Serial.println("MQTTの再接続に失敗しました。処理を停止します。");
-            while (1);
+            while (1)
+                ;
         }
         Serial.println("MQTTに再接続しました (Subscribe モード)");
-        
+
         // Subscribe 処理
         mqttSubscribe();
 
@@ -155,11 +159,12 @@ void loop() {
             }
         }
 
-        Serial.printf("購読タイムアウト: %d ms経過しました！\n", SUBSCRIBE_TIMEOUT);
-        theMqttGs2200.stop(); // Subscribe後に接続を停止
+        Serial.printf("購読タイムアウト: %d ms経過しました！\n",
+                      SUBSCRIBE_TIMEOUT);
+        theMqttGs2200.stop();  // Subscribe後に接続を停止
         lastActionTime = millis();
-        publishing = true; // 次は publish を実行
+        publishing = true;  // 次は publish を実行
     }
 
-    delay(5000); // 切り替え間隔を調整
+    delay(5000);  // 切り替え間隔を調整
 }
