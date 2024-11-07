@@ -1,7 +1,7 @@
 from flask_app import db
 
 
-class User(db.Model):
+class Users(db.Model):
     __tablename__: str = "users"
     id: int = db.Column(db.Integer, primary_key=True)
     name: str = db.Column(db.String(255))
@@ -52,4 +52,28 @@ class MqttMessages(db.Model):
             "qos": self.qos,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
+        }
+
+
+class Questions(db.Model):
+    __tablename__ = "questions"
+    id: int = db.Column(db.Integer, primary_key=True)
+    sentence: str = db.Column(db.String(255))
+    optionA: str = db.Column(db.String(255))
+    optionB: str = db.Column(db.String(255))
+
+    def __init__(self, sentence: str, optionA: str, optionB: str) -> None:
+        self.sentence = sentence
+        self.optionA = optionA
+        self.optionB = optionB
+
+    def __repr__(self) -> str:
+        return f"<Question {self.sentence}>"
+
+    def toDict(self) -> dict:
+        return {
+            "id": self.id,
+            "sentence": self.sentence,
+            "optionA": self.optionA,
+            "optionB": self.optionB,
         }
