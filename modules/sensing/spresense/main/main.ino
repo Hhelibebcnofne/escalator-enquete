@@ -10,6 +10,12 @@
 
 #define LR_INVERSION false
 #define LR_THRESHOLD 200
+#define WALL_THRESHOLD 1000
+#define USE_HALF_WALL_THRESHOLD true
+#if USE_HALF_WALL_THRESHOLD
+    #define LR_THRESHOLD
+    #define LR_THRESHOLD (int)(WALL_THRESHOLD/2)
+#endif
 #define TIMER_INTERVAL_US 10000000
 #define SENSING_RATE_MS 1000
 #define SUBSCRIBE_TIMEOUT 1000
@@ -83,7 +89,7 @@ void start_distance_sensor() {
     while (true) {
         uint16_t distance_value = tof_sensor.get_distance();
         int lr_result = -1;
-        if (distance_value > LR_THRESHOLD) {
+        if (distance_value > LR_THRESHOLD && distance_value < WALL_THRESHOLD) {
             lr_result = 1;
         } else if (distance_value < LR_THRESHOLD) {
             lr_result = 0;
