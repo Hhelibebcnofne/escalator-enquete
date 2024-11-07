@@ -1,7 +1,7 @@
 from flask_app import db
 
 
-class User(db.Model):
+class Users(db.Model):
     __tablename__: str = "users"
     id: int = db.Column(db.Integer, primary_key=True)
     name: str = db.Column(db.String(255))

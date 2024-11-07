@@ -1,7 +1,7 @@
 from flask_app import db, logger
 from flask import Blueprint, request, jsonify
 from flask_inertia import render_inertia
-from flask_app.models import User
+from flask_app.models import Users
 
 user_bp = Blueprint("user", __name__)
 
@@ -16,7 +16,7 @@ def create_user_view():
 @user_bp.route("/users", methods=["GET", "POST"])
 def manage_users():
     if request.method == "GET":
-        users = User.query.all()
+        users = Users.query.all()
         users = [user.toDict() for user in users]
         return render_inertia(
             component_name="ReadUsers", props={"users": users}, view_data={}
@@ -28,7 +28,7 @@ def manage_users():
             if not username:
                 return jsonify({"error": "Name is required"}), 400
 
-            user = User(name=username)
+            user = Users(name=username)
             db.session.add(user)
             db.session.commit()
             return jsonify({"message": "User created successfully"}), 201
@@ -40,7 +40,7 @@ def manage_users():
 # GET: Read a specific user
 @user_bp.route("/users/<int:id>", methods=["GET"])
 def get_user_view(id):
-    user = User.query.get_or_404(id)
+    user = Users.query.get_or_404(id)
     return render_inertia(
         component_name="ReadUser", props={"user": user.toDict()}, view_data={}
     )
@@ -49,7 +49,7 @@ def get_user_view(id):
 # GET: Edit user page
 @user_bp.route("/users/edit/<int:id>", methods=["GET"])
 def edit_user_view(id):
-    user = User.query.get_or_404(id)
+    user = Users.query.get_or_404(id)
     return render_inertia(
         component_name="UpdateUsers", props={"user": user.toDict()}, view_data={}
     )
@@ -59,7 +59,7 @@ def edit_user_view(id):
 @user_bp.route("/users/<int:id>", methods=["PUT"])
 def update_user(id):
     try:
-        user = User.query.get_or_404(id)
+        user = Users.query.get_or_404(id)
         username = request.json.get("name")
         if not username:
             return jsonify({"error": "Name is required"}), 400
@@ -79,7 +79,7 @@ def update_user(id):
 @user_bp.route("/users/<int:id>", methods=["DELETE"])
 def delete_user(id):
     try:
-        user = User.query.get_or_404(id)
+        user = Users.query.get_or_404(id)
         db.session.delete(user)
         db.session.commit()
         return jsonify({"message": "User deleted successfully"}), 200
