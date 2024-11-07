@@ -14,9 +14,7 @@ legacy_version を使っています．
 
 普通に nodejs をバージョン指定でインストールしても構いません．
 
-#### 以下 FE サーバ実行までの手順
-
-`cd ./servers/frontend`
+`cd ./servers/app_server/flask_app/vite`
 
 ここから 2 回目以降不要
 
@@ -24,11 +22,9 @@ legacy_version を使っています．
 
 `npm install -g pnpm@latest-8`
 
-`pnpm install` パッケージ変更時と 1 回目のみ
-
 ここまで 2 回目以降不要
 
-`pnpm run dev`
+`pnpm install` パッケージ変更時と 1 回目のみ
 
 ### backend
 
@@ -40,10 +36,48 @@ windows であれば，scoop をインストールして，そこに rye をイ�
 
 scoop 無しでも使いやすいとは思います．
 
-#### 以下 BE サーバ実行までの手順
+#### 以下サーバ実行までの手順
 
-`cd ./servers/backend`
+##### 定期的に実行すること
 
-`rye sync`
+データベースの更新
 
-`rye run flask --app src/backend/app.py run` ※変更の可能性大
+```bash
+
+cd ./servers/app_server/flask_app
+
+rye run flask db upgrade
+
+```
+
+モデル変更時
+
+```bash
+
+cd ./servers/app_server/flask_app
+
+rye run flask migrate -m "更新内容を示す英語のメッセージ"
+
+rye run flask db upgrade
+
+```
+
+##### サーバーの起動
+
+ターミナル 1 つ目
+
+```bash
+cd ./servers/app_server/flask_app
+
+rye sync
+
+rye run flask --debug run
+```
+
+ターミナル 2 つ目
+
+```bash
+cd ./servers/app_server/flask_app
+
+rye run flask vite start
+```
