@@ -9,7 +9,7 @@ user_bp = Blueprint("user", __name__)
 # GET: Create user page
 @user_bp.route("/users/create", methods=["GET"])
 def create_user_view():
-    return render_inertia(component_name="CreateUsers", props={}, view_data={})
+    return render_inertia(component_name="CreateUser", props={}, view_data={})
 
 
 # GET: Read all users / POST: Create a new user
