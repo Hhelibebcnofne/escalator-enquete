@@ -77,7 +77,7 @@ def get_question_view(id):
 def edit_question_view(id):
     question = Questions.query.get_or_404(id)
     return render_inertia(
-        component_name="UpdateQuestionss",
+        component_name="UpdateQuestion",
         props={"question": question.toDict()},
         view_data={},
     )
