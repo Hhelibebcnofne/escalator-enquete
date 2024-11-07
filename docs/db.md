@@ -4,8 +4,6 @@
 
 ```mermaid
 erDiagram
-    questions ||--|{ options : "1つの質問は2つ以上の選択肢を持つ(2..*)"
-
     users {
         int id PK "Primary Key"
         text name "Not Null"
@@ -14,17 +12,14 @@ erDiagram
     questions {
         int id PK "Primary Key"
         text question_text "question text"
-    }
-
-    options {
-        int id PK "Primary Key"
-        int question_id FK "Not Null"
-
+        text optionA "option text 1"
+        text optionB "option text 2"
     }
 
 ```
 
 ## 説明
 
-質問文に対する選択肢は 1 対 2 を基本として想定している。
-左右それぞれに対応する選択肢が存在するはずだからである。
+質問文に対する選択肢は 1 対 2 が想定されるため、テーブルの分割はしない．
+
+Users テーブルは現状使用していない．
