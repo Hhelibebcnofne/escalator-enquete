@@ -23,7 +23,7 @@ def publish_question():
 # GET: Create question page
 @question_bp.route("/questions/create", methods=["GET"])
 def create_question_view():
-    return render_inertia(component_name="CreateQuestions", props={}, view_data={})
+    return render_inertia(component_name="CreateQuestion", props={}, view_data={})
 
 
 # GET: Read all questions / POST: Create a new question
