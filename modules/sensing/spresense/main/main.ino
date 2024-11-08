@@ -17,7 +17,6 @@
     #define LR_THRESHOLD (int)(WALL_THRESHOLD/2)
 #endif
 #define TIMER_INTERVAL_US 10000000
-#define SENSING_RATE_MS 1000
 #define SUBSCRIBE_TIMEOUT 1000
 #define CONSOLE_BAUDRATE 115200
 
@@ -86,10 +85,7 @@ void start_bluetooth_process() {
 }
 
 void start_distance_sensor() {
-    unsigned long start = millis();
     int lr_result = -1;
-    // int count_status = -1;
-    // while (millis() - start < SENSING_RATE_MS) {
     while (true){
         uint16_t distance_value = tof_sensor.get_distance();
         Serial.print("Distance: ");
@@ -99,13 +95,11 @@ void start_distance_sensor() {
                 continue;
             }
             lr_result = 1;
-            // count_status = 1;
-        } else if (distance_value < LR_THRESHOLD) {
+        } else if (distance_value < LR_THRESHOLD && distance_value > 60) {// distance_value > 50gはノイズ対策
             if (lr_result == 0) {
                 continue;
             }
             lr_result = 0;
-            // count_status = 0;
         } else {
             lr_result = -1;
             continue;
@@ -120,7 +114,6 @@ void start_distance_sensor() {
         }
         cv.notify_one();         // Bluetoothスレッドに通知
 
-        // delay(SENSING_RATE_MS);  // センサデータの取得周期
     }
 }
 
@@ -150,18 +143,6 @@ void initLED() {
     Serial.println("LEDの初期化が完了し、消灯しました。");
 }
 
-void setup() {
-    Serial.begin(CONSOLE_BAUDRATE);  // PCとの通信
-    BT.begin(9600);
-    initLED();
-    tof_sensor.setup();
-    wifi_module_manager.setup();
-
-    attachTimerInterrupt(set_mqtt_flag, TIMER_INTERVAL_US);
-    pthread_create(&bluetooth_process, NULL, start_bluetooth_process, NULL);
-    pthread_create(&distance_sensor_process, NULL, start_distance_sensor, NULL);
-}
-
 bool send_count_mqtt_publish(WiFi_Module_Manager& wifi_manager) {
     // // Publishモード時の再接続
     if (wifi_manager.initMQTT()) {
@@ -187,11 +168,24 @@ bool get_question_mqtt_subscribe(WiFi_Module_Manager& wifi_manager) {
     }
 }
 
+void setup() {
+    Serial.begin(CONSOLE_BAUDRATE);  // PCとの通信
+    BT.begin(9600);
+    initLED();
+    tof_sensor.setup();
+    wifi_module_manager.setup();
+
+    attachTimerInterrupt(set_mqtt_flag, TIMER_INTERVAL_US);
+    pthread_create(&bluetooth_process, NULL, start_bluetooth_process, NULL);
+    pthread_create(&distance_sensor_process, NULL, start_distance_sensor, NULL);
+}
+
 void loop() {
-    // delay(5000); // 切り替え間隔を調整
-    // if (mqtt_flag) {
-    //     get_question_mqtt_subscribe(wifi_module_manager);
-    //     send_count_mqtt_publish(wifi_module_manager);
-    //     mqtt_flag = false;
-    // }
+    Serial.println(tof_sensor.get_distance());
+    delay(5000); // 切り替え間隔を調整
+    if (mqtt_flag) {
+        get_question_mqtt_subscribe(wifi_module_manager);
+        send_count_mqtt_publish(wifi_module_manager);
+        mqtt_flag = false;
+    }
 }
