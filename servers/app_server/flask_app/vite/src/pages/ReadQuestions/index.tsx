@@ -23,25 +23,38 @@ const ReadQuestions: FC<ReadQuestionsProps> = ({ questions }) => {
   return (
     <div>
       <h1>Read Questions</h1>
-      {questions.map((question) => (
-        <>
-          <div key={question.id}>
-            <p>
-              {question.id} {question.sentence} {question.optionA}{" "}
-              {question.optionB}
-            </p>
-          </div>
-          <div>
-            <a href={`/questions/edit/${question.id}`}>Update </a>
-            <a
-              onClick={() => handleDeleteQuestion(question.id)}
-              style={{ cursor: "pointer" }}
-            >
-              Delete
-            </a>
-          </div>
-        </>
-      ))}
+      <table>
+        <thead>
+          <tr>
+            <th>Id</th>
+            <th>Sentence</th>
+            <th>Option A</th>
+            <th>Option B</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {questions.map((question) => (
+            <tr key={question.id}>
+              <td>{question.id}</td>
+              <td>{question.sentence}</td>
+              <td>{question.optionA}</td>
+              <td>{question.optionB}</td>
+              <td>
+                <div>
+                  <a href={`/questions/edit/${question.id}`}>Update </a>
+                  <a
+                    onClick={() => handleDeleteQuestion(question.id)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Delete
+                  </a>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
       <a href="/questions/create">Create Question</a>
     </div>
   );
