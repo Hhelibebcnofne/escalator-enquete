@@ -4,7 +4,7 @@ from flask_app import db
 class Users(db.Model):
     __tablename__: str = "users"
     id: int = db.Column(db.Integer, primary_key=True)
-    name: str = db.Column(db.String(255))
+    name: str = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(
         db.DateTime, server_default=db.func.now(), onupdate=db.func.now()
@@ -58,9 +58,9 @@ class MqttMessages(db.Model):
 class Questions(db.Model):
     __tablename__ = "questions"
     id: int = db.Column(db.Integer, primary_key=True)
-    sentence: str = db.Column(db.String(255))
-    optionA: str = db.Column(db.String(255))
-    optionB: str = db.Column(db.String(255))
+    sentence: str = db.Column(db.String(255), nullable=False)
+    optionA: str = db.Column(db.String(255), nullable=False)
+    optionB: str = db.Column(db.String(255), nullable=False)
 
     def __init__(self, sentence: str, optionA: str, optionB: str) -> None:
         self.sentence = sentence
