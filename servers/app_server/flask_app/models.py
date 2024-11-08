@@ -61,6 +61,10 @@ class Questions(db.Model):
     sentence: str = db.Column(db.String(255), nullable=False)
     optionA: str = db.Column(db.String(255), nullable=False)
     optionB: str = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(
+        db.DateTime, server_default=db.func.now(), onupdate=db.func.now()
+    )
 
     def __init__(self, sentence: str, optionA: str, optionB: str) -> None:
         self.sentence = sentence
@@ -76,4 +80,6 @@ class Questions(db.Model):
             "sentence": self.sentence,
             "optionA": self.optionA,
             "optionB": self.optionB,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
         }

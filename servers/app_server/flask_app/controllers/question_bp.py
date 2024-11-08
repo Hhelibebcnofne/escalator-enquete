@@ -7,14 +7,11 @@ import json
 question_bp = Blueprint("question_bp", __name__)
 
 
-@question_bp.route("/questions/publish", methods=["GET"])
-def publish_question():
-    question = {
-        "sentence": "What is the answer to life, the universe, and everything?",
-        "optionA": "42",
-        "optionB": "24",
-    }
-    mqtt.publish("question/topic", json.dumps(question))
+@question_bp.route("/questions/publish/<int:id>", methods=["GET"])
+def publish_question(id):
+    question = Questions.query.get_or_404(id)
+
+    mqtt.publish("question/topic", json.dumps(question.toDict()))
 
     logger.info("Published question to MQTT")
     return redirect(url_for("index.index"))
