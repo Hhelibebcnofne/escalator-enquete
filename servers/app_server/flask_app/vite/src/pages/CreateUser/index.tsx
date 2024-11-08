@@ -32,6 +32,7 @@ const CreateUser: FC = () => {
           type="text"
           value={userName}
           onChange={handleUserNameChange}
+          required={true}
         />
         <button type="submit">Create User</button>
       </form>

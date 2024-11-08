@@ -37,6 +37,7 @@ const Update: FC<UpdateUsersProps> = ({ user }) => {
           type="text"
           value={userName}
           onChange={handleUserNameChange}
+          required={true}
         />
         <button type="submit">Update User</button>
       </form>

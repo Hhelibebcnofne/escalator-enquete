@@ -47,6 +47,7 @@ const CreateQuestion: FC = () => {
           type="text"
           value={sentence}
           onChange={handleSentenceChange}
+          required={true}
         />
         <input
           id="optionAText"
@@ -54,6 +55,7 @@ const CreateQuestion: FC = () => {
           type="text"
           value={optionAText}
           onChange={handleOptionATextChange}
+          required={true}
         />
         <input
           id="optionBText"
@@ -61,6 +63,7 @@ const CreateQuestion: FC = () => {
           type="text"
           value={optionBText}
           onChange={handleOptionBTextChange}
+          required={true}
         />
         <button type="submit">Create Question</button>
       </form>
