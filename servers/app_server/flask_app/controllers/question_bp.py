@@ -10,11 +10,11 @@ question_bp = Blueprint("question_bp", __name__)
 @question_bp.route("/questions/publish/<int:id>", methods=["POST"])
 def publish_question(id):
     question = Questions.query.get_or_404(id)
-    question = question.toDict()
-    question["created_at"] = question["created_at"].isoformat()
-    question["updated_at"] = question["updated_at"].isoformat()
+    question_payload = question.toDict()
+    question_payload["created_at"] = question_payload["created_at"].isoformat()
+    question_payload["updated_at"] = question_payload["updated_at"].isoformat()
 
-    mqtt.publish("question/topic", json.dumps(question))
+    mqtt.publish("question/topic", json.dumps(question_payload))
 
     logger.info("Published question to MQTT")
     return redirect(url_for("index.index"))
