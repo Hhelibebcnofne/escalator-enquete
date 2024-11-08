@@ -23,7 +23,7 @@ def publish_question():
 # GET: Create question page
 @question_bp.route("/questions/create", methods=["GET"])
 def create_question_view():
-    return render_inertia(component_name="CreateQuestions", props={}, view_data={})
+    return render_inertia(component_name="CreateQuestion", props={}, view_data={})
 
 
 # GET: Read all questions / POST: Create a new question
@@ -66,7 +66,7 @@ def manage_questions():
 def get_question_view(id):
     question = Questions.query.get_or_404(id)
     return render_inertia(
-        component_name="ReadQuestions",
+        component_name="ReadQuestion",
         props={"question": question.toDict()},
         view_data={},
     )
@@ -77,7 +77,7 @@ def get_question_view(id):
 def edit_question_view(id):
     question = Questions.query.get_or_404(id)
     return render_inertia(
-        component_name="UpdateQuestionss",
+        component_name="UpdateQuestion",
         props={"question": question.toDict()},
         view_data={},
     )

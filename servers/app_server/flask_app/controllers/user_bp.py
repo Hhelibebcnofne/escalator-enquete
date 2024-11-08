@@ -51,7 +51,7 @@ def get_user_view(id):
 def edit_user_view(id):
     user = Users.query.get_or_404(id)
     return render_inertia(
-        component_name="UpdateUsers", props={"user": user.toDict()}, view_data={}
+        component_name="UpdateUser", props={"user": user.toDict()}, view_data={}
     )
 
 

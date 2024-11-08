@@ -1,7 +1,7 @@
 import { ChangeEvent, FC, useState } from "react";
 import { getCsrfToken } from "../../utils/csrf";
 
-const Create: FC = () => {
+const CreateUser: FC = () => {
   const [userName, setUserName] = useState("");
   const handleUserNameChange = (event: ChangeEvent<HTMLInputElement>) => {
     setUserName(event.target.value);
@@ -39,4 +39,4 @@ const Create: FC = () => {
   );
 };
 
-export default Create;
+export default CreateUser;
