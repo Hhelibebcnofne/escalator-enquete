@@ -66,7 +66,7 @@ def manage_questions():
 def get_question_view(id):
     question = Questions.query.get_or_404(id)
     return render_inertia(
-        component_name="ReadQuestions",
+        component_name="ReadQuestion",
         props={"question": question.toDict()},
         view_data={},
     )
