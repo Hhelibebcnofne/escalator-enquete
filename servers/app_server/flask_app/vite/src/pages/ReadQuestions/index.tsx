@@ -20,6 +20,18 @@ const ReadQuestions: FC<ReadQuestionsProps> = ({ questions }) => {
       window.location.href = "/questions";
     });
   };
+  const handlePublishQuestion = (id: number) => {
+    fetch(`/questions/publish/${id}`, {
+      method: "post",
+      headers: csrfToken
+        ? {
+            "X-CSRF-Token": csrfToken,
+          }
+        : {},
+    }).then(() => {
+      window.location.href = "/questions";
+    });
+  };
   return (
     <div>
       <h1>Read Questions</h1>
@@ -42,6 +54,13 @@ const ReadQuestions: FC<ReadQuestionsProps> = ({ questions }) => {
               <td>{question.optionB}</td>
               <td>
                 <div>
+                  <a
+                    onClick={() => handlePublishQuestion(question.id)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Publish{" "}
+                  </a>
+
                   <a href={`/questions/edit/${question.id}`}>Update </a>
                   <a
                     onClick={() => handleDeleteQuestion(question.id)}
