@@ -51,6 +51,7 @@ const Update: FC<UpdateQuestionsProps> = ({ question }) => {
           type="text"
           value={sentence}
           onChange={handleSentenceChange}
+          required={true}
         />
         <input
           id="optionAText"
@@ -58,6 +59,7 @@ const Update: FC<UpdateQuestionsProps> = ({ question }) => {
           type="text"
           value={optionAText}
           onChange={handleOptionATextChange}
+          required={true}
         />
         <input
           id="optionBText"
@@ -65,6 +67,7 @@ const Update: FC<UpdateQuestionsProps> = ({ question }) => {
           type="text"
           value={optionBText}
           onChange={handleOptionBTextChange}
+          required={true}
         />
         <button type="submit">Create Question</button>
       </form>
