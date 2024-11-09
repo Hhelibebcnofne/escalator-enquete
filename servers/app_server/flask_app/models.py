@@ -71,6 +71,12 @@ class Questions(db.Model):
         self.optionA = optionA
         self.optionB = optionB
 
+    __table_args__ = (
+        db.UniqueConstraint(
+            "sentence", "optionA", "optionB", name="uq_sentence_optionA_optionB"
+        ),
+    )
+
     def __repr__(self) -> str:
         return f"<Question {self.sentence}>"
 
