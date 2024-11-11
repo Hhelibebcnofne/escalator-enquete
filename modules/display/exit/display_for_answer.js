@@ -121,16 +121,16 @@ function read(event) {
 }
 
 // サンプル動作用
-let c = 0
-setInterval(() => {
-  if (c % 2 == 0) {
-    count_up("left_count");//左
-  } else {
-    count_up("right_count");//右
-  }
+// let c = 0
+// setInterval(() => {
+//   if (c % 2 == 0) {
+//     count_up("left_count");//左
+//   } else {
+//     count_up("right_count");//右
+//   }
 
-  if ((c + 1) % 5 == 0) {
-    count_up("sample1,sample2");
-  }
-  c += 1
-}, 3000);
+//   if ((c + 1) % 5 == 0) {
+//     count_up("sample1,sample2");
+//   }
+//   c += 1
+// }, 3000);

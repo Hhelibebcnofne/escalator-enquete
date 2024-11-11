@@ -8,8 +8,6 @@ ToF_Sensor::ToF_Sensor() {
  * @brief setup()関数
  */
 void ToF_Sensor::setup() {
-    // シリアルモニタ出力設定
-    Serial.begin(115200);
 
     bool sensor_initialized = distance_sensor.init();
     if (sensor_initialized == false) {
