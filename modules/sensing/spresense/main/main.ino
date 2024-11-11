@@ -20,12 +20,18 @@
 #define SUBSCRIBE_TIMEOUT 1000
 #define CONSOLE_BAUDRATE 115200
 
+enum class SensorResult {
+    RightDetected = 1,   // 右判定
+    LeftDetected = 0,    // 左判定
+    ErrorDetected = -1   // エラー判定
+};
+
 SoftwareSerial BT(BT_TX_PIN, BT_RX_PIN);
 
 ToF_Sensor tof_sensor;
 WiFi_Module_Manager wifi_module_manager;
 
-std::queue<int> sensorQueue;
+std::queue<SensorResult> sensorQueue;
 std::mutex queueMutex;
 std::condition_variable cv;
 
@@ -38,12 +44,6 @@ bool mqtt_flag = false;
 
 pthread_t distance_sensor_process, bluetooth_process;
 
-enum class SensorResult {
-    RightDetected = 1,   // 右判定
-    LeftDetected = 0,    // 左判定
-    ErrorDetected = -1   // エラー判定
-};
-
 void start_bluetooth_process() {
     while (true) {
         std::unique_lock<std::mutex> lock(queueMutex);
@@ -51,24 +51,22 @@ void start_bluetooth_process() {
             return !sensorQueue.empty();
         });  // キューにデータが来るまで待機
 
-        int lr_result = sensorQueue.front();
+        SensorResult lr_result = sensorQueue.front();
         sensorQueue.pop();
-        Serial.print("Popped LR Result: ");
-        Serial.println(lr_result);
 
         String message;
 #if LR_INVERSION
-        if (lr_result == 0) {
+        if (lr_result == SensorResult::LeftDetected) {
             message = "left_count";
-        } else if (lr_result == 1) {
+        } else if (lr_result == SensorResult::RightDetected) {
             message = "right_count";
         } else {
             message = "count_error";
         }
 #else
-        if (lr_result == 0) {
+        if (lr_result == SensorResult::LeftDetected) {
             message = "right_count";
-        } else if (lr_result == 1) {
+        } else if (lr_result == SensorResult::RightDetected) {
             message = "left_count";
         } else {
             message = "count_error";
@@ -79,9 +77,9 @@ void start_bluetooth_process() {
         Serial.println(message);  // デバッグ出力
         {
             std::lock_guard<std::mutex> countLock(countMutex);
-            if (lr_result == 0) {
+            if (lr_result == SensorResult::LeftDetected) {
                 right_count++;
-            } else if (lr_result == 1) {
+            } else if (lr_result == SensorResult::RightDetected) {
                 left_count++;
             } else {
                 error_count++;
@@ -114,7 +112,7 @@ void start_distance_sensor() {
 
         {
             std::lock_guard<std::mutex> lock(queueMutex);
-            sensorQueue.push(static_cast<int>(lr_result));  // enum を int 型に変換してキューに追加
+            sensorQueue.push(lr_result);
         }
 
         cv.notify_one();  // Bluetoothスレッドに通知
