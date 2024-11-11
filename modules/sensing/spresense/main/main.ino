@@ -38,6 +38,12 @@ bool mqtt_flag = false;
 
 pthread_t distance_sensor_process, bluetooth_process;
 
+enum class SensorResult {
+    RightDetected = 1,   // 右判定
+    LeftDetected = 0,    // 左判定
+    ErrorDetected = -1   // エラー判定
+};
+
 void start_bluetooth_process() {
     while (true) {
         std::unique_lock<std::mutex> lock(queueMutex);
@@ -85,35 +91,33 @@ void start_bluetooth_process() {
 }
 
 void start_distance_sensor() {
-    int lr_result = -1;
+    SensorResult lr_result = SensorResult::ErrorDetected;  // 初期値をエラー判定に
     while (true){
         uint16_t distance_value = tof_sensor.get_distance();
         Serial.print("Distance: ");
         Serial.println(distance_value);
+
         if (distance_value > LR_THRESHOLD && distance_value < WALL_THRESHOLD) {
-            if (lr_result == 1) {
+            if (lr_result == SensorResult::RightDetected) {
                 continue;
             }
-            lr_result = 1;
-        } else if (distance_value < LR_THRESHOLD && distance_value > 60) {// distance_value > 50gはノイズ対策
-            if (lr_result == 0) {
+            lr_result = SensorResult::RightDetected;
+        } else if (distance_value < LR_THRESHOLD && distance_value > 60) { // ノイズ対策の60
+            if (lr_result == SensorResult::LeftDetected) {
                 continue;
             }
-            lr_result = 0;
+            lr_result = SensorResult::LeftDetected;
         } else {
-            lr_result = -1;
+            lr_result = SensorResult::ErrorDetected;
             continue;
         }
 
-        // Serial.print("LR Result: ");
-        // Serial.println(lr_result);
-
         {
             std::lock_guard<std::mutex> lock(queueMutex);
-            sensorQueue.push(lr_result);  // センサデータをキューに追加
+            sensorQueue.push(static_cast<int>(lr_result));  // enum を int 型に変換してキューに追加
         }
-        cv.notify_one();         // Bluetoothスレッドに通知
 
+        cv.notify_one();  // Bluetoothスレッドに通知
     }
 }
 
