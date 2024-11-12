@@ -1,32 +1,96 @@
+// 共通処理
+#include <MP.h>
+
+enum class SensorResult {
+    RightDetected = 1,  // 右判定
+    LeftDetected = 0,   // 左判定
+    ErrorDetected = -1  // エラー判定
+};
+
+#if (SUBCORE == 1)
+// SubCore1 ビルド
 #include <SoftwareSerial.h>
+
+#define BT_RX_PIN PIN_D00
+#define BT_TX_PIN PIN_D01
+#define BT_BAUDRATE 9600
+
+SoftwareSerial BT(BT_TX_PIN, BT_RX_PIN);
+
+void setup() {
+    MP.begin();             // SubCore起動完了通知
+    BT.begin(BT_BAUDRATE);  // Bluetooth通信開始
+
+    MPLog("[SubCore1] Bluetooth communication started");
+}
+
+void loop() {
+    SensorResult received_data = SensorResult::ErrorDetected;
+
+    // MainCoreからのデータを受信
+    if (MP.Recv(1, &received_data) == 1) {
+        // 受信したデータをBluetooth経由で送信
+        MPLog("[SubCore1] Sent data: %d\n", received_data);
+
+        String message;
+#if LR_INVERSION
+        if (received_data == SensorResult::LeftDetected) {
+            message = "left_count";
+        } else if (received_data == SensorResult::RightDetected) {
+            message = "right_count";
+        } else {
+            message = "count_error";
+        }
+#else
+        if (received_data == SensorResult::LeftDetected) {
+            message = "right_count";
+        } else if (received_data == SensorResult::RightDetected) {
+            message = "left_count";
+        } else {
+            message = "count_error";
+        }
+#endif
+
+        BT.println(message);      // Bluetooth送信
+        Serial.println(message);  // デバッグ出力
+    }
+
+    delay(100);  // Bluetooth通信間隔の遅延
+}
+
+#elif (SUBCORE == 2)
+// SubCore2 ビルド
+
+#elif (SUBCORE == 3)
+// SubCore3 ビルド
+
+#elif (SUBCORE == 4)
+// SubCore4 ビルド
+
+#elif (SUBCORE == 5)
+// SubCore5 ビルド
+
+#else
+// MainCore ビルド
 #include <condition_variable>
 #include <mutex>
 #include <queue>
 #include "ToF_Sensor.h"
 #include "WiFi_Module_Manager.h"
 
-#define BT_RX_PIN PIN_D00
-#define BT_TX_PIN PIN_D01
-
 #define LR_INVERSION false
 #define LR_THRESHOLD 200
 #define WALL_THRESHOLD 500
 #define USE_HALF_WALL_THRESHOLD true
+
 #if USE_HALF_WALL_THRESHOLD
-    #define LR_THRESHOLD
-    #define LR_THRESHOLD (int)(WALL_THRESHOLD/2)
+#define LR_THRESHOLD
+#define LR_THRESHOLD (int)(WALL_THRESHOLD / 2)
 #endif
+
 #define TIMER_INTERVAL_US 10000000
 #define SUBSCRIBE_TIMEOUT 1000
 #define CONSOLE_BAUDRATE 115200
-
-enum class SensorResult {
-    RightDetected = 1,   // 右判定
-    LeftDetected = 0,    // 左判定
-    ErrorDetected = -1   // エラー判定
-};
-
-SoftwareSerial BT(BT_TX_PIN, BT_RX_PIN);
 
 ToF_Sensor tof_sensor;
 WiFi_Module_Manager wifi_module_manager;
@@ -42,55 +106,12 @@ std::mutex countMutex;
 
 bool mqtt_flag = false;
 
-pthread_t distance_sensor_process, bluetooth_process;
-
-void start_bluetooth_process() {
-    while (true) {
-        std::unique_lock<std::mutex> lock(queueMutex);
-        cv.wait(lock, [] {
-            return !sensorQueue.empty();
-        });  // キューにデータが来るまで待機
-
-        SensorResult lr_result = sensorQueue.front();
-        sensorQueue.pop();
-
-        String message;
-#if LR_INVERSION
-        if (lr_result == SensorResult::LeftDetected) {
-            message = "left_count";
-        } else if (lr_result == SensorResult::RightDetected) {
-            message = "right_count";
-        } else {
-            message = "count_error";
-        }
-#else
-        if (lr_result == SensorResult::LeftDetected) {
-            message = "right_count";
-        } else if (lr_result == SensorResult::RightDetected) {
-            message = "left_count";
-        } else {
-            message = "count_error";
-        }
-#endif
-
-        BT.println(message);      // Bluetooth送信
-        Serial.println(message);  // デバッグ出力
-        {
-            std::lock_guard<std::mutex> countLock(countMutex);
-            if (lr_result == SensorResult::LeftDetected) {
-                right_count++;
-            } else if (lr_result == SensorResult::RightDetected) {
-                left_count++;
-            } else {
-                error_count++;
-            }
-        }
-    }
-}
+pthread_t distance_sensor_process;
 
 void start_distance_sensor() {
-    SensorResult lr_result = SensorResult::ErrorDetected;  // 初期値をエラー判定に
-    while (true){
+    SensorResult lr_result =
+        SensorResult::ErrorDetected;  // 初期値をエラー判定に
+    while (true) {
         uint16_t distance_value = tof_sensor.get_distance();
         Serial.print("Distance: ");
         Serial.println(distance_value);
@@ -100,7 +121,8 @@ void start_distance_sensor() {
                 continue;
             }
             lr_result = SensorResult::RightDetected;
-        } else if (distance_value < LR_THRESHOLD && distance_value > 60) { // ノイズ対策の60
+        } else if (distance_value < LR_THRESHOLD &&
+                   distance_value > 60) {  // ノイズ対策の60
             if (lr_result == SensorResult::LeftDetected) {
                 continue;
             }
@@ -114,8 +136,8 @@ void start_distance_sensor() {
             std::lock_guard<std::mutex> lock(queueMutex);
             sensorQueue.push(lr_result);
         }
-
-        cv.notify_one();  // Bluetoothスレッドに通知
+        MP.Send(1, &lr_result, 1);
+        // cv.notify_one();  // Bluetoothスレッドに通知
     }
 }
 
@@ -172,22 +194,24 @@ bool get_question_mqtt_subscribe(WiFi_Module_Manager& wifi_manager) {
 
 void setup() {
     Serial.begin(CONSOLE_BAUDRATE);  // PCとの通信
-    BT.begin(9600);
     initLED();
     tof_sensor.setup();
-    wifi_module_manager.setup();
+    // wifi_module_manager.setup();
 
     attachTimerInterrupt(set_mqtt_flag, TIMER_INTERVAL_US);
-    pthread_create(&bluetooth_process, NULL, start_bluetooth_process, NULL);
     pthread_create(&distance_sensor_process, NULL, start_distance_sensor, NULL);
+    MP.begin(1);
+    Serial.println("MainCore: Started");
 }
 
 void loop() {
     Serial.println(tof_sensor.get_distance());
-    delay(5000); // 切り替え間隔を調整
-    if (mqtt_flag) {
-        get_question_mqtt_subscribe(wifi_module_manager);
-        send_count_mqtt_publish(wifi_module_manager);
-        mqtt_flag = false;
-    }
+    delay(5000);  // 切り替え間隔を調整
+    // if (mqtt_flag) {
+    //     get_question_mqtt_subscribe(wifi_module_manager);
+    //     send_count_mqtt_publish(wifi_module_manager);
+    //     mqtt_flag = false;
+    // }
 }
+
+#endif
