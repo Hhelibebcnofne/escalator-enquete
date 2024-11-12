@@ -30,7 +30,10 @@ void loop() {
     // MainCoreからのデータを受信
     if (MP.Recv(1, &received_data) == 1) {
         // 受信したデータをBluetooth経由で送信
-        MPLog("[SubCore1] Sent data: %d\n", received_data);
+        MPLog("[SubCore1] Received data: %d\n",
+              static_cast<int>(received_data));
+
+        received_data = static_cast<SensorResult>(received_data);
 
         String message;
 #if LR_INVERSION
@@ -51,8 +54,8 @@ void loop() {
         }
 #endif
 
-        BT.println(message);      // Bluetooth送信
-        Serial.println(message);  // デバッグ出力
+        BT.println(message);  // Bluetooth送信
+        // MPLog("%s", message);  // デバッグ出力
     }
 
     delay(100);  // Bluetooth通信間隔の遅延
@@ -136,7 +139,7 @@ void start_distance_sensor() {
             std::lock_guard<std::mutex> lock(queueMutex);
             sensorQueue.push(lr_result);
         }
-        MP.Send(1, &lr_result, 1);
+        MP.Send(1, static_cast<int>(lr_result), 1);
         // cv.notify_one();  // Bluetoothスレッドに通知
     }
 }
@@ -205,7 +208,7 @@ void setup() {
 }
 
 void loop() {
-    Serial.println(tof_sensor.get_distance());
+    // Serial.println(tof_sensor.get_distance());
     delay(5000);  // 切り替え間隔を調整
     // if (mqtt_flag) {
     //     get_question_mqtt_subscribe(wifi_module_manager);
