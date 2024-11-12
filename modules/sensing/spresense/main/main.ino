@@ -1,3 +1,22 @@
+#include <MP.h>
+#if (SUBCORE == 1)
+// SubCore1 ビルド
+
+#elif (SUBCORE == 2)
+// SubCore2 ビルド
+
+#elif (SUBCORE == 3)
+// SubCore3 ビルド
+
+#elif (SUBCORE == 4)
+// SubCore4 ビルド
+
+#elif (SUBCORE == 5)
+// SubCore5 ビルド
+
+#else
+// MainCore ビルド
+
 #include <SoftwareSerial.h>
 #include <condition_variable>
 #include <mutex>
@@ -13,17 +32,17 @@
 #define WALL_THRESHOLD 500
 #define USE_HALF_WALL_THRESHOLD true
 #if USE_HALF_WALL_THRESHOLD
-    #define LR_THRESHOLD
-    #define LR_THRESHOLD (int)(WALL_THRESHOLD/2)
+#define LR_THRESHOLD
+#define LR_THRESHOLD (int)(WALL_THRESHOLD / 2)
 #endif
 #define TIMER_INTERVAL_US 10000000
 #define SUBSCRIBE_TIMEOUT 1000
 #define CONSOLE_BAUDRATE 115200
 
 enum class SensorResult {
-    RightDetected = 1,   // 右判定
-    LeftDetected = 0,    // 左判定
-    ErrorDetected = -1   // エラー判定
+    RightDetected = 1,  // 右判定
+    LeftDetected = 0,   // 左判定
+    ErrorDetected = -1  // エラー判定
 };
 
 SoftwareSerial BT(BT_TX_PIN, BT_RX_PIN);
@@ -89,8 +108,9 @@ void start_bluetooth_process() {
 }
 
 void start_distance_sensor() {
-    SensorResult lr_result = SensorResult::ErrorDetected;  // 初期値をエラー判定に
-    while (true){
+    SensorResult lr_result =
+        SensorResult::ErrorDetected;  // 初期値をエラー判定に
+    while (true) {
         uint16_t distance_value = tof_sensor.get_distance();
         Serial.print("Distance: ");
         Serial.println(distance_value);
@@ -100,7 +120,8 @@ void start_distance_sensor() {
                 continue;
             }
             lr_result = SensorResult::RightDetected;
-        } else if (distance_value < LR_THRESHOLD && distance_value > 60) { // ノイズ対策の60
+        } else if (distance_value < LR_THRESHOLD &&
+                   distance_value > 60) {  // ノイズ対策の60
             if (lr_result == SensorResult::LeftDetected) {
                 continue;
             }
@@ -184,10 +205,12 @@ void setup() {
 
 void loop() {
     Serial.println(tof_sensor.get_distance());
-    delay(5000); // 切り替え間隔を調整
+    delay(5000);  // 切り替え間隔を調整
     if (mqtt_flag) {
         get_question_mqtt_subscribe(wifi_module_manager);
         send_count_mqtt_publish(wifi_module_manager);
         mqtt_flag = false;
     }
 }
+
+#endif
