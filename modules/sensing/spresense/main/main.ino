@@ -28,8 +28,8 @@ void setup() {
 void loop() {
     SensorResult received_data = SensorResult::ErrorDetected;
 
-    // MainCoreからのデータを受信
-    if (MP.Recv(1, &received_data) == 1) {
+    // SensorCoreからのデータを受信
+    if (MP.Recv(1, &received_data, 3) == 1) {
         // 受信したデータをBluetooth経由で送信
         MPLog("[SubCore1] Received data: %d\n",
               static_cast<int>(received_data));
@@ -59,7 +59,7 @@ void loop() {
         // MPLog("%s", message);  // デバッグ出力
     }
 
-    delay(100);  // Bluetooth通信間隔の遅延
+    delay(500);  // Bluetooth通信間隔の遅延
 }
 
 #elif (SUBCORE == 2)
@@ -68,18 +68,6 @@ void loop() {
 #define SUBSCRIBE_TIMEOUT 1000
 
 WiFi_Module_Manager wifi_module_manager;
-
-/* bool get_question_mqtt_subscribe(WiFi_Module_Manager& wifi_manager) {
-    if (wifi_manager.initMQTT()) {
-        Serial.println("MQTTに再接続しました (Subscribe モード)");
-        // Subscribe 処理
-        wifi_manager.mqttSubscribe();
-        return true;
-    } else {
-        Serial.println("MQTTの再接続に失敗しました。処理を停止します。");
-        return false;
-    }
-} */
 
 bool send_count_mqtt_publish(WiFi_Module_Manager& wifi_manager,
                              String message) {
@@ -111,6 +99,53 @@ void loop() {
 
 #elif (SUBCORE == 3)
 // SubCore3 ビルド
+#include "ToF_Sensor.h"
+
+#define WALL_THRESHOLD 500
+#define USE_HALF_WALL_THRESHOLD true
+
+#if USE_HALF_WALL_THRESHOLD
+
+#define LR_THRESHOLD (int)(WALL_THRESHOLD / 2)
+
+#else
+
+#define LR_THRESHOLD 200
+
+#endif
+
+ToF_Sensor tof_sensor;
+
+SensorResult lr_result = SensorResult::ErrorDetected;  // 初期値をエラー判定に
+
+void setup() {
+    MP.begin();
+    tof_sensor.setup();
+}
+
+void loop() {
+    delay(100);
+    uint16_t distance_value = tof_sensor.get_distance();
+    MPLog("Distance: %d\n", distance_value);
+
+    if (distance_value > LR_THRESHOLD && distance_value < WALL_THRESHOLD) {
+        if (lr_result == SensorResult::RightDetected) {
+            return;
+        }
+        lr_result = SensorResult::RightDetected;
+    } else if (distance_value < LR_THRESHOLD &&
+               distance_value > 60) {  // ノイズ対策の60
+        if (lr_result == SensorResult::LeftDetected) {
+            return;
+        }
+        lr_result = SensorResult::LeftDetected;
+    } else {
+        lr_result = SensorResult::ErrorDetected;
+        return;
+    }
+
+    MP.Send(1, static_cast<int>(lr_result), 1);
+}
 
 #elif (SUBCORE == 4)
 // SubCore4 ビルド
@@ -120,28 +155,10 @@ void loop() {
 
 #else
 // MainCore ビルド
-#include <condition_variable>
 #include <mutex>
-#include <queue>
-#include "ToF_Sensor.h"
-
-#define LR_THRESHOLD 200
-#define WALL_THRESHOLD 500
-#define USE_HALF_WALL_THRESHOLD true
-
-#if USE_HALF_WALL_THRESHOLD
-
-#define LR_THRESHOLD
-#define LR_THRESHOLD (int)(WALL_THRESHOLD / 2)
-
-#endif
 
 #define TIMER_INTERVAL_US 10000000
 #define CONSOLE_BAUDRATE 115200
-
-ToF_Sensor tof_sensor;
-
-std::condition_variable cv;
 
 int left_count = 0;
 int right_count = 0;
@@ -149,8 +166,6 @@ int error_count = 0;
 std::mutex countMutex;
 
 bool mqtt_flag = false;
-
-pthread_t distance_sensor_process;
 
 unsigned int set_mqtt_flag() {
     mqtt_flag = true;
@@ -179,50 +194,19 @@ void initLED() {
     Serial.println("LEDの初期化が完了し、消灯しました。");
 }
 
-void start_distance_sensor() {
-    SensorResult lr_result =
-        SensorResult::ErrorDetected;  // 初期値をエラー判定に
-    while (true) {
-        uint16_t distance_value = tof_sensor.get_distance();
-        Serial.print("Distance: ");
-        Serial.println(distance_value);
-
-        if (distance_value > LR_THRESHOLD && distance_value < WALL_THRESHOLD) {
-            if (lr_result == SensorResult::RightDetected) {
-                continue;
-            }
-            lr_result = SensorResult::RightDetected;
-        } else if (distance_value < LR_THRESHOLD &&
-                   distance_value > 60) {  // ノイズ対策の60
-            if (lr_result == SensorResult::LeftDetected) {
-                continue;
-            }
-            lr_result = SensorResult::LeftDetected;
-        } else {
-            lr_result = SensorResult::ErrorDetected;
-            continue;
-        }
-
-        MP.Send(1, static_cast<int>(lr_result), 1);
-        // cv.notify_one();  // Bluetoothスレッドに通知
-    }
-}
-
 void setup() {
     Serial.begin(CONSOLE_BAUDRATE);  // PCとの通信
     initLED();
-    // tof_sensor.setup();
 
     attachTimerInterrupt(set_mqtt_flag, TIMER_INTERVAL_US);
-    // pthread_create(&distance_sensor_process, NULL, start_distance_sensor,
-    // NULL);
     MP.begin(1);
     MP.begin(2);
+    MP.begin(3);
     Serial.println("MainCore: Started");
 }
 
 void loop() {
-    delay(5000);
+    // delay(5000);
     if (mqtt_flag) {
         publish_mqtt_counts();
         mqtt_flag = false;
