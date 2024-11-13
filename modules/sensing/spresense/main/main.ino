@@ -71,19 +71,20 @@ WiFi_Module_Manager wifi_module_manager;
 
 bool send_count_mqtt_publish(WiFi_Module_Manager& wifi_manager,
                              String message) {
-    // // Publishモード時の再接続
+    // Publishモード時の再接続
     if (wifi_manager.initMQTT()) {
-        Serial.println("MQTTに再接続しました (Publish モード)");
-        // // Publish 処理
+        MPLog("MQTTに再接続しました (Publish モード)");
+        // Publish 処理
         wifi_manager.mqttPublish(message.c_str());  // MQTTでカウントを送信
         return true;
     } else {
-        Serial.println("MQTTの再接続に失敗しました。処理を停止します。");
+        MPLog("MQTTの再接続に失敗しました。処理を停止します。");
         return false;
     }
 }
 void setup() {
     MP.begin();
+    MPLog("[SubCore2] WiFi Setup\n");
     wifi_module_manager.setup();
     MPLog("[SubCore2] Started\n");
 }
@@ -91,6 +92,8 @@ void setup() {
 void loop() {
     String message;
     if (MP.Recv(2, &message) == 2) {
+        MPLog("[SubCore2] Received data: %s\n", message.c_str());
+        MPLog("[SubCore2] MQTT Publish\n");
         send_count_mqtt_publish(wifi_module_manager, message.c_str());
     } else {
         wifi_module_manager.mqttSubscribe();
@@ -121,12 +124,13 @@ SensorResult lr_result = SensorResult::ErrorDetected;  // 初期値をエラー�
 void setup() {
     MP.begin();
     tof_sensor.setup();
+    MPLog("[SubCore3] Started\n");
 }
 
 void loop() {
     delay(100);
     uint16_t distance_value = tof_sensor.get_distance();
-    MPLog("Distance: %d\n", distance_value);
+    // MPLog("Distance: %d\n", distance_value);
 
     if (distance_value > LR_THRESHOLD && distance_value < WALL_THRESHOLD) {
         if (lr_result == SensorResult::RightDetected) {
@@ -145,6 +149,7 @@ void loop() {
     }
 
     MP.Send(1, static_cast<int>(lr_result), 1);
+    MPLog("[SubCore3] Sent data: %d\n", static_cast<int>(lr_result));
 }
 
 #elif (SUBCORE == 4)
@@ -184,7 +189,7 @@ void publish_mqtt_counts() {
         right_count = 0;
         error_count = 0;
     }
-    // wifi_manager.mqttPublish(payload.c_str());  // MQTTでカウントを送信
+    MPLog("Publishing: %s\n", payload.c_str());
     MP.Send(2, &payload, 2);
 }
 
@@ -198,19 +203,19 @@ void setup() {
     Serial.begin(CONSOLE_BAUDRATE);  // PCとの通信
     initLED();
 
-    attachTimerInterrupt(set_mqtt_flag, TIMER_INTERVAL_US);
     MP.begin(1);
     MP.begin(2);
     MP.begin(3);
+    // attachTimerInterrupt(set_mqtt_flag, TIMER_INTERVAL_US);
     Serial.println("MainCore: Started");
 }
 
 void loop() {
-    // delay(5000);
-    if (mqtt_flag) {
-        publish_mqtt_counts();
-        mqtt_flag = false;
-    }
+    delay(50000);
+    // if (mqtt_flag) {
+    publish_mqtt_counts();
+    // mqtt_flag = false;
+    // }
 }
 
 #endif
