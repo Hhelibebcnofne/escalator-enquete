@@ -91,14 +91,15 @@ void setup() {
 }
 
 void loop() {
-    String message;
-    if (MP.Recv(2, &message) == 2) {
-        MPLog("[SubCore2] Received data: %s\n", message.c_str());
-        MPLog("[SubCore2] MQTT Publish\n");
-        send_count_mqtt_publish(wifi_module_manager, message.c_str());
-    } else {
-        wifi_module_manager.mqttSubscribe();
-    }
+    // String message;
+    // if (MP.Recv(2, &message) == 2) {
+    //     MPLog("[SubCore2] Received data: %s\n", message.c_str());
+    //     MPLog("[SubCore2] MQTT Publish\n");
+    //     send_count_mqtt_publish(wifi_module_manager, message.c_str());
+    // } else {
+    //     wifi_module_manager.mqttSubscribe();
+    // }
+    // delay(5000)
 }
 
 #elif (SUBCORE == 3)
@@ -205,14 +206,14 @@ void setup() {
     initLED();
 
     MP.begin(1);
-    // MP.begin(2);
+    MP.begin(2);
     MP.begin(3);
     // attachTimerInterrupt(set_mqtt_flag, TIMER_INTERVAL_US);
     Serial.println("MainCore: Started");
 }
 
 void loop() {
-    delay(20000);
+    // delay(40000);
     // if (mqtt_flag) {
     // publish_mqtt_counts();
     // mqtt_flag = false;
