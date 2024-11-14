@@ -410,7 +410,6 @@ void loop() {
 int left_count = 0;
 int right_count = 0;
 int error_count = 0;
-std::mutex countMutex;
 
 bool mqtt_flag = false;
 
@@ -421,18 +420,15 @@ unsigned int set_mqtt_flag() {
 
 void publish_mqtt_counts() {
     String payload;
-    {
-        std::lock_guard<std::mutex> countLock(countMutex);
-        payload = "Left: " + String(left_count) +
-                  ", Right: " + String(right_count) +
-                  ", Errors: " + String(error_count);
-        // カウントをリセット
-        left_count = 0;
-        right_count = 0;
-        error_count = 0;
-    }
+    payload = "Left: " + String(left_count) +
+              ", Right: " + String(right_count) +
+              ", Errors: " + String(error_count);
+    // カウントをリセット
+    left_count = 0;
+    right_count = 0;
+    error_count = 0;
     MPLog("Publishing: %s\n", payload.c_str());
-    MP.Send(MAIN_TO_MQTT_PUBLISH, &payload, MQTT_PUBLISH_CORE);
+    // MP.Send(MAIN_TO_MQTT_PUBLISH, &payload, MQTT_PUBLISH_CORE);
 }
 
 void initLED() {
@@ -451,7 +447,7 @@ void setup() {
     // MP.begin(MQTT_PUBLISH_CORE);
     MP.begin(SENSOR_CORE);
     MP.begin(MQTT_SUBSCRIBE_CORE);
-    // attachTimerInterrupt(set_mqtt_flag, TIMER_INTERVAL_US);
+    attachTimerInterrupt(set_mqtt_flag, TIMER_INTERVAL_US);
     MP.RecvTimeout(MP_RECV_POLLING);
     Serial.println("MainCore: Started");
 }
@@ -467,6 +463,16 @@ void loop() {
 
     if (MP.Recv(SENSOR_TO_MAIN, &lr_result, SENSOR_CORE) == SENSOR_TO_MAIN) {
         MPLog("Received data: %d\n", static_cast<int>(lr_result));
+        lr_result = static_cast<SensorResult>(lr_result);
+
+        if (lr_result == SensorResult::RightDetected) {
+            right_count++;
+        } else if (lr_result == SensorResult::LeftDetected) {
+            left_count++;
+        } else {
+            error_count++;
+        }
+
         MP.Send(MAIN_TO_BLUETOOTH, static_cast<int>(lr_result), BLUETOOTH_CORE);
         MPLog("Sent data: %d\n", static_cast<int>(lr_result));
     }
@@ -479,10 +485,10 @@ void loop() {
         packet->status = 0;
     }
 
-    // if (mqtt_flag) {
-    //     publish_mqtt_counts();
-    //     mqtt_flag = false;
-    // }
+    if (mqtt_flag) {
+        publish_mqtt_counts();
+        mqtt_flag = false;
+    }
 }
 
 #endif
