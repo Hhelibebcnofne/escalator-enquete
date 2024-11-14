@@ -265,7 +265,7 @@ void loop() {
 #include "config.h"
 
 #define CONSOLE_BAUDRATE 115200
-#define SUBSCRIBE_TIMEOUT 60000  // ms
+#define SUBSCRIBE_TIMEOUT 60 * 60000  // ms
 /*-------------------------------------------------------------------------*
  * Globals:
  *-------------------------------------------------------------------------*/
@@ -420,7 +420,7 @@ void setup() {
 }
 
 void loop() {
-    delay(40000);
+    // delay(40000);
     // if (mqtt_flag) {
     // publish_mqtt_counts();
     // mqtt_flag = false;
