@@ -12,34 +12,46 @@
     <button id="bluetooth-connect-button">Connect</button>
     <div class="container">
         <h2>現在までの投票結果</h2>
+        <!-- <div class="left"> -->
+            <!-- <h1>🍚</h1> -->
+        <!--</div>左に配置-->
+        <!-- <div class="light"> -->
+            <!-- <h1>🍞</h1> -->
+        <!--</div>右に配置-->
         <div class="results-container fadehidarikara"><!--長さ制御-->
             <div class="right-answer-bar"><!--位置制御--><!--回答.jsにて拡大・縮小のクラスを追加-->
                 <p>
-                <div id="right-answer-description"></div>
+                <div class="font">
+                    <div id="right-answer-description"></div>
+                </div>
                 <div class="label"></div>
                 </p>
                 <div class="bar"><!--グラフの表示-->
                     <div class="bar-inner right-answer-ratio-bar-inner"></div><!-- ここに動的に幅が反映される -->
                 </div>
-                <p id="right-answer-ratio"></p> <!-- ここに数値が挿入される -->
+                <div class="font">
+                    <p id="right-answer-ratio"></p> <!-- ここに数値が挿入される -->
+                </div>
             </div>
         </div>
 
         <div class="results-container fademigikara">
-            <div class="left-answer-bar "><!--回答.jsにて拡大・縮小のクラスを追加-->
-                <p><span id="left-answer-description"></span>
+            <div class="left-answer-bar"><!--回答.jsにて拡大・縮小のクラスを追加-->
+                <div class="font2">
+                    <p><span id="left-answer-description"></span>
+                </div>
                 <div class="label"></div>
                 </p>
-                <div class="bar">
-                    <div class="bar-inner left-answer-ratio-bar-inner"></div><!-- ここに動的に幅が反映される -->
+                <div class="left-answer-ratio-bar-inner2"></div><!-- ここに動的に幅が反映される -->
+                <div class="font2">
+                    <p id="left-answer-ratio"></p> <!-- ここに数値が挿入される -->
                 </div>
-                <p id="left-answer-ratio"></p> <!-- ここに数値が挿入される -->
-            </div>
+            </div><!--ここにjsの動的処理が入る-->
         </div>
 
         <div class="description">
             <p>
-            <div class="anime-object fadehidarikara">合計投票人数: <span id="total-person-count"></span>人</div>
+            <h3 class="anime-object fadehidarikara">合計投票人数: <span id="total-person-count"></span>人</h3>
             </p>
         </div>
     </div>
@@ -47,4 +59,5 @@
     <script src="display_for_answer.js">//ここにJavascriptコードを記述
     </script>
 </body>
+
 </html>
