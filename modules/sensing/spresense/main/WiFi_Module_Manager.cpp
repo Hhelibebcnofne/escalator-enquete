@@ -1,11 +1,9 @@
 #include "WiFi_Module_Manager.h"
 
-WiFi_Module_Manager::WiFi_Module_Manager() {
-    TelitWiFi gs2200;
-    MqttGs2200 theMqttGs2200(&gs2200);
+WiFi_Module_Manager::WiFi_Module_Manager() : gs2200(), theMqttGs2200(&gs2200) {
     TWIFI_Params gsparams;
-    bool publish_served = false;
-    bool subscribe_served = false;
+    // bool publish_served = false;
+    // bool subscribe_served = false;
     uint16_t len;
 }
 
