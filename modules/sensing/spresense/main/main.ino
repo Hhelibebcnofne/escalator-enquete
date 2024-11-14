@@ -59,13 +59,13 @@ void loop() {
         // MPLog("%s", message);  // デバッグ出力
     }
 
-    delay(500);  // Bluetooth通信間隔の遅延
+    delay(100);  // Bluetooth通信間隔の遅延
 }
 
 #elif (SUBCORE == 2)
 // SubCore2 ビルド
 #include "WiFi_Module_Manager.h"
-#define SUBSCRIBE_TIMEOUT 1000
+#define CONSOLE_BAUDRATE 115200
 
 WiFi_Module_Manager wifi_module_manager;
 
@@ -84,6 +84,7 @@ bool send_count_mqtt_publish(WiFi_Module_Manager& wifi_manager,
 }
 void setup() {
     MP.begin();
+    Serial.begin(CONSOLE_BAUDRATE);  // PCとの通信
     MPLog("[SubCore2] WiFi Setup\n");
     wifi_module_manager.setup();
     MPLog("[SubCore2] Started\n");
@@ -204,16 +205,16 @@ void setup() {
     initLED();
 
     MP.begin(1);
-    MP.begin(2);
+    // MP.begin(2);
     MP.begin(3);
     // attachTimerInterrupt(set_mqtt_flag, TIMER_INTERVAL_US);
     Serial.println("MainCore: Started");
 }
 
 void loop() {
-    delay(50000);
+    delay(20000);
     // if (mqtt_flag) {
-    publish_mqtt_counts();
+    // publish_mqtt_counts();
     // mqtt_flag = false;
     // }
 }
