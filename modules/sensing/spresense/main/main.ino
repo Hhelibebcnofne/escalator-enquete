@@ -2,11 +2,15 @@
 #include <MP.h>
 #define LR_INVERSION false
 
-#define MAIN_CORE 0
 #define BLUETOOTH_CORE 1
-#define MQTT_SUBSCRIBE_CORE 2
+#define MQTT_PUBLISH_CORE 2
 #define SENSOR_CORE 3
-#define MQTT_PUBLISH_CORE 4
+#define MQTT_SUBSCRIBE_CORE 4
+
+#define SENSOR_TO_MAIN 1
+#define MAIN_TO_BLUETOOTH 2
+// #define MQTT_SUBSCRIBE_TO_MAIN 3
+// #define MAIN_TO_MQTT_PUBLISH 4
 
 enum class SensorResult {
     RightDetected = 1,  // 右判定
@@ -14,7 +18,7 @@ enum class SensorResult {
     ErrorDetected = -1  // エラー判定
 };
 
-#if (SUBCORE == BLUE_TOOTH_CORE)
+#if (SUBCORE == BLUETOOTH_CORE)
 // SubCore1 ビルド
 #include <SoftwareSerial.h>
 
@@ -33,9 +37,7 @@ void setup() {
 void loop() {
     SensorResult received_data = SensorResult::ErrorDetected;
 
-    // SensorCoreからのデータを受信
-    if (MP.Recv(1, &received_data, 3) == 1) {
-        // 受信したデータをBluetooth経由で送信
+    if (MP.Recv(MAIN_TO_BLUETOOTH, &received_data) == MAIN_TO_BLUETOOTH) {
         MPLog("[SubCore1] Received data: %d\n",
               static_cast<int>(received_data));
 
@@ -67,7 +69,7 @@ void loop() {
     delay(100);  // Bluetooth通信間隔の遅延
 }
 
-#elif (SUBCORE == MQTT_SUBSCRIBE_CORE)
+#elif (SUBCORE == MQTT_PUBLISH_CORE)
 // SubCore2 ビルド
 #include <MqttGs2200.h>
 #include <TelitWiFi.h>
@@ -260,11 +262,11 @@ void loop() {
         return;
     }
 
-    MP.Send(1, static_cast<int>(lr_result), 1);
+    MP.Send(SENSOR_TO_MAIN, static_cast<int>(lr_result));
     MPLog("[SubCore3] Sent data: %d\n", static_cast<int>(lr_result));
 }
 
-#elif (SUBCORE == MQTT_PUBLISH_CORE)
+#elif (SUBCORE == MQTT_SUBSCRIBE_CORE)
 // SubCore4 ビルド
 #include <MqttGs2200.h>
 #include <TelitWiFi.h>
@@ -417,20 +419,28 @@ void setup() {
     Serial.begin(CONSOLE_BAUDRATE);  // PCとの通信
     initLED();
 
-    MP.begin(1);
-    // MP.begin(2);
-    MP.begin(3);
-    MP.begin(4);
+    MP.begin(BLUETOOTH_CORE);
+    // MP.begin(MQTT_PUBLISH_CORE);
+    MP.begin(SENSOR_CORE);
+    MP.begin(MQTT_SUBSCRIBE_CORE);
     // attachTimerInterrupt(set_mqtt_flag, TIMER_INTERVAL_US);
     Serial.println("MainCore: Started");
 }
 
+SensorResult lr_result = SensorResult::ErrorDetected;  // 初期値をエラー判定に
+
 void loop() {
-    MP.Recv(1, &left_count, SENSOR_CORE);
-    // delay(40000);
+    MP.RecvTimeout(MP_RECV_POLLING);
+
+    if (MP.Recv(SENSOR_TO_MAIN, &lr_result, SENSOR_CORE) == SENSOR_TO_MAIN) {
+        MPLog("[MainCore] Received data: %d\n", static_cast<int>(lr_result));
+        MP.Send(MAIN_TO_BLUETOOTH, static_cast<int>(lr_result), BLUETOOTH_CORE);
+        MPLog("[MainCore] Sent data: %d\n", static_cast<int>(lr_result));
+    }
+
     // if (mqtt_flag) {
-    // publish_mqtt_counts();
-    // mqtt_flag = false;
+    //     publish_mqtt_counts();
+    //     mqtt_flag = false;
     // }
 }
 
