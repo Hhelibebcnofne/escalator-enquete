@@ -14,6 +14,8 @@
 
 #define MSGLEN 512
 
+uint32_t myMsDelta(uint32_t start);
+
 enum class SensorResult {
     RightDetected = 1,  // 右判定
     LeftDetected = 0,   // 左判定
@@ -69,8 +71,8 @@ void loop() {
         }
 #endif
 
-        BT.println(message);  // Bluetooth送信
-        // MPLog("%s", message);  // デバッグ出力
+        BT.println(message);           // Bluetooth送信
+        MPLog("%s", message.c_str());  // デバッグ出力
     }
 
     delay(100);  // Bluetooth通信間隔の遅延
@@ -360,7 +362,7 @@ void loop() {
     } else {
         uint64_t start = millis();
         while (served) {
-            if (msDelta(start) < SUBSCRIBE_TIMEOUT) {
+            if (myMsDelta(start) < SUBSCRIBE_TIMEOUT) {
                 String data;
                 /* just in case something from GS2200 */
                 while (gs2200.available()) {
@@ -404,19 +406,12 @@ void loop() {
 // MainCore ビルド
 #include <mutex>
 
-#define TIMER_INTERVAL_US 10000000
+#define MQTT_INTERVAL_MS 60000 * 1  // ms
 #define CONSOLE_BAUDRATE 115200
 
 int left_count = 0;
 int right_count = 0;
 int error_count = 0;
-
-bool mqtt_flag = false;
-
-unsigned int set_mqtt_flag() {
-    mqtt_flag = true;
-    return TIMER_INTERVAL_US;
-}
 
 void publish_mqtt_counts() {
     String payload;
@@ -447,18 +442,14 @@ void setup() {
     // MP.begin(MQTT_PUBLISH_CORE);
     MP.begin(SENSOR_CORE);
     MP.begin(MQTT_SUBSCRIBE_CORE);
-    attachTimerInterrupt(set_mqtt_flag, TIMER_INTERVAL_US);
     MP.RecvTimeout(MP_RECV_POLLING);
     Serial.println("MainCore: Started");
 }
 
 SensorResult lr_result = SensorResult::ErrorDetected;  // 初期値をエラー判定に
-char recvBuffer[256];
-String mqtt_message;
+uint64_t start = millis();
 
 void loop() {
-    int subid;
-    int8_t msgid;
     MyPacket* packet;
 
     if (MP.Recv(SENSOR_TO_MAIN, &lr_result, SENSOR_CORE) == SENSOR_TO_MAIN) {
@@ -479,16 +470,20 @@ void loop() {
 
     if (MP.Recv(MQTT_SUBSCRIBE_TO_MAIN, &packet, MQTT_SUBSCRIBE_CORE) ==
         MQTT_SUBSCRIBE_TO_MAIN) {
-        mqtt_message = String(recvBuffer);
         MPLog("Received data from MQTT\n");
         MPLog("%s\n", packet->message);
         packet->status = 0;
     }
 
-    if (mqtt_flag) {
+    if (myMsDelta(start) > MQTT_INTERVAL_MS) {
         publish_mqtt_counts();
-        mqtt_flag = false;
+        start = millis();
     }
 }
 
 #endif
+
+uint32_t myMsDelta(uint32_t start) {
+    uint32_t now = millis();
+    return now - start;
+}
