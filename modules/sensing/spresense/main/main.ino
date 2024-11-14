@@ -2,20 +2,25 @@
 #include <MP.h>
 #define LR_INVERSION false
 
+#define MAIN_CORE 0
+#define BLUETOOTH_CORE 1
+#define MQTT_SUBSCRIBE_CORE 2
+#define SENSOR_CORE 3
+#define MQTT_PUBLISH_CORE 4
+
 enum class SensorResult {
     RightDetected = 1,  // 右判定
     LeftDetected = 0,   // 左判定
     ErrorDetected = -1  // エラー判定
 };
 
-#if (SUBCORE == 1)
+#if (SUBCORE == BLUE_TOOTH_CORE)
 // SubCore1 ビルド
 #include <SoftwareSerial.h>
 
 #define BT_RX_PIN PIN_D00
 #define BT_TX_PIN PIN_D01
 #define BT_BAUDRATE 9600
-
 SoftwareSerial BT(BT_TX_PIN, BT_RX_PIN);
 
 void setup() {
@@ -62,7 +67,7 @@ void loop() {
     delay(100);  // Bluetooth通信間隔の遅延
 }
 
-#elif (SUBCORE == 2)
+#elif (SUBCORE == MQTT_SUBSCRIBE_CORE)
 // SubCore2 ビルド
 #include <MqttGs2200.h>
 #include <TelitWiFi.h>
@@ -206,7 +211,7 @@ void loop() {
     delay(5000);
 }
 
-#elif (SUBCORE == 3)
+#elif (SUBCORE == SENSOR_CORE)
 // SubCore3 ビルド
 #include "ToF_Sensor.h"
 
@@ -259,7 +264,7 @@ void loop() {
     MPLog("[SubCore3] Sent data: %d\n", static_cast<int>(lr_result));
 }
 
-#elif (SUBCORE == 4)
+#elif (SUBCORE == MQTT_PUBLISH_CORE)
 // SubCore4 ビルド
 #include <MqttGs2200.h>
 #include <TelitWiFi.h>
@@ -421,6 +426,7 @@ void setup() {
 }
 
 void loop() {
+    MP.Recv(1, &left_count, SENSOR_CORE);
     // delay(40000);
     // if (mqtt_flag) {
     // publish_mqtt_counts();
