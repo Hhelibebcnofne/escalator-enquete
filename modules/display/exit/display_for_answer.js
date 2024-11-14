@@ -81,6 +81,7 @@ window.onload = function () {
   document.getElementById("total-person-count").textContent = 0;
   document.getElementById("right-answer-description").textContent = right_answer_description;
   document.getElementById("right-answer-ratio").textContent = left_answer_description;
+  
 
   // 初期グラフ幅の設定
   document.querySelector(".right-answer-ratio-bar-inner").style.width = "0" + "%";
