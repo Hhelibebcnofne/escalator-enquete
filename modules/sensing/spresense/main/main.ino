@@ -9,13 +9,20 @@
 
 #define SENSOR_TO_MAIN 1
 #define MAIN_TO_BLUETOOTH 2
-// #define MQTT_SUBSCRIBE_TO_MAIN 3
-// #define MAIN_TO_MQTT_PUBLISH 4
+#define MQTT_SUBSCRIBE_TO_MAIN 3
+#define MAIN_TO_MQTT_PUBLISH 4
+
+#define MSGLEN 512
 
 enum class SensorResult {
     RightDetected = 1,  // 右判定
     LeftDetected = 0,   // 左判定
     ErrorDetected = -1  // エラー判定
+};
+
+struct MyPacket {
+    volatile int status; /* 0:ready, 1:busy */
+    char message[MSGLEN];
 };
 
 #if (SUBCORE == BLUETOOTH_CORE)
@@ -273,16 +280,20 @@ void loop() {
 #include "config.h"
 
 #define CONSOLE_BAUDRATE 115200
-#define SUBSCRIBE_TIMEOUT 60 * 60000  // ms
+// #define SUBSCRIBE_TIMEOUT 60 * 60000  // ms
+#define SUBSCRIBE_TIMEOUT 60000  // ms
 /*-------------------------------------------------------------------------*
  * Globals:
  *-------------------------------------------------------------------------*/
 TelitWiFi gs2200;
 TWIFI_Params gsparams;
 MqttGs2200 theMqttGs2200(&gs2200);
+MyPacket packet;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
+    memset(&packet, 0, sizeof(packet));
+    MP.begin();
     MQTTGS2200_HostParams hostParams;
     /* initialize digital pin LED_BUILTIN as an output. */
     pinMode(LED0, OUTPUT);
@@ -321,6 +332,7 @@ char server_cid = 0;
 bool served = false;
 uint16_t len, count = 0;
 MQTTGS2200_Mqtt mqtt;
+int ret;
 
 // the loop function runs over and over again forever
 void loop() {
@@ -353,11 +365,25 @@ void loop() {
                 /* just in case something from GS2200 */
                 while (gs2200.available()) {
                     if (false == theMqttGs2200.receive(data)) {
-                        served = false;  // quite the loop
+                        served = false;  // quit the loop
                         break;
                     }
 
                     Serial.println("Recieve data: " + data);
+
+                    if (packet.status == 0) {
+                        /* status -> busy */
+                        packet.status = 1;
+
+                        /* Create a message */
+                        snprintf(packet.message, MSGLEN, "%s", data.c_str());
+
+                        /* Send to MainCore */
+                        ret = MP.Send(MQTT_SUBSCRIBE_TO_MAIN, &packet);
+                        if (ret < 0) {
+                            printf("MP.Send error = %d\n", ret);
+                        }
+                    }
                 }
                 start = millis();
             } else {
@@ -406,7 +432,7 @@ void publish_mqtt_counts() {
         error_count = 0;
     }
     MPLog("Publishing: %s\n", payload.c_str());
-    MP.Send(2, &payload, 2);
+    MP.Send(MAIN_TO_MQTT_PUBLISH, &payload, MQTT_PUBLISH_CORE);
 }
 
 void initLED() {
@@ -417,6 +443,8 @@ void initLED() {
 
 void setup() {
     Serial.begin(CONSOLE_BAUDRATE);  // PCとの通信
+    while (!Serial)
+        ;
     initLED();
 
     MP.begin(BLUETOOTH_CORE);
@@ -424,18 +452,31 @@ void setup() {
     MP.begin(SENSOR_CORE);
     MP.begin(MQTT_SUBSCRIBE_CORE);
     // attachTimerInterrupt(set_mqtt_flag, TIMER_INTERVAL_US);
+    MP.RecvTimeout(MP_RECV_POLLING);
     Serial.println("MainCore: Started");
 }
 
 SensorResult lr_result = SensorResult::ErrorDetected;  // 初期値をエラー判定に
+char recvBuffer[256];
+String mqtt_message;
 
 void loop() {
-    MP.RecvTimeout(MP_RECV_POLLING);
+    int subid;
+    int8_t msgid;
+    MyPacket* packet;
 
     if (MP.Recv(SENSOR_TO_MAIN, &lr_result, SENSOR_CORE) == SENSOR_TO_MAIN) {
-        MPLog("[MainCore] Received data: %d\n", static_cast<int>(lr_result));
+        MPLog("Received data: %d\n", static_cast<int>(lr_result));
         MP.Send(MAIN_TO_BLUETOOTH, static_cast<int>(lr_result), BLUETOOTH_CORE);
-        MPLog("[MainCore] Sent data: %d\n", static_cast<int>(lr_result));
+        MPLog("Sent data: %d\n", static_cast<int>(lr_result));
+    }
+
+    if (MP.Recv(MQTT_SUBSCRIBE_TO_MAIN, &packet, MQTT_SUBSCRIBE_CORE) ==
+        MQTT_SUBSCRIBE_TO_MAIN) {
+        mqtt_message = String(recvBuffer);
+        MPLog("Received data from MQTT\n");
+        MPLog("%s\n", packet->message);
+        packet->status = 0;
     }
 
     // if (mqtt_flag) {
