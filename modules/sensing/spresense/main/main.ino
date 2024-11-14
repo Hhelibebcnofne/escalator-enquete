@@ -210,7 +210,8 @@ void loop() {
 // SubCore3 ビルド
 #include "ToF_Sensor.h"
 
-#define WALL_THRESHOLD 500
+#define WALL_THRESHOLD 1600
+// #define WALL_THRESHOLD 500
 #define USE_HALF_WALL_THRESHOLD true
 
 #if USE_HALF_WALL_THRESHOLD
