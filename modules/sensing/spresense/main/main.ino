@@ -2,20 +2,36 @@
 #include <MP.h>
 #define LR_INVERSION false
 
+#define BLUETOOTH_CORE 1
+#define MQTT_PUBLISH_CORE 2
+#define SENSOR_CORE 3
+#define MQTT_SUBSCRIBE_CORE 4
+
+#define SENSOR_TO_MAIN 1
+#define MAIN_TO_BLUETOOTH 2
+#define MQTT_SUBSCRIBE_TO_MAIN 3
+#define MAIN_TO_MQTT_PUBLISH 4
+
+#define MSGLEN 512
+
 enum class SensorResult {
     RightDetected = 1,  // 右判定
     LeftDetected = 0,   // 左判定
     ErrorDetected = -1  // エラー判定
 };
 
-#if (SUBCORE == 1)
+struct MyPacket {
+    volatile int status; /* 0:ready, 1:busy */
+    char message[MSGLEN];
+};
+
+#if (SUBCORE == BLUETOOTH_CORE)
 // SubCore1 ビルド
 #include <SoftwareSerial.h>
 
 #define BT_RX_PIN PIN_D00
 #define BT_TX_PIN PIN_D01
 #define BT_BAUDRATE 9600
-
 SoftwareSerial BT(BT_TX_PIN, BT_RX_PIN);
 
 void setup() {
@@ -28,9 +44,7 @@ void setup() {
 void loop() {
     SensorResult received_data = SensorResult::ErrorDetected;
 
-    // SensorCoreからのデータを受信
-    if (MP.Recv(1, &received_data, 3) == 1) {
-        // 受信したデータをBluetooth経由で送信
+    if (MP.Recv(MAIN_TO_BLUETOOTH, &received_data) == MAIN_TO_BLUETOOTH) {
         MPLog("[SubCore1] Received data: %d\n",
               static_cast<int>(received_data));
 
@@ -62,7 +76,7 @@ void loop() {
     delay(100);  // Bluetooth通信間隔の遅延
 }
 
-#elif (SUBCORE == 2)
+#elif (SUBCORE == MQTT_PUBLISH_CORE)
 // SubCore2 ビルド
 #include <MqttGs2200.h>
 #include <TelitWiFi.h>
@@ -206,7 +220,7 @@ void loop() {
     delay(5000);
 }
 
-#elif (SUBCORE == 3)
+#elif (SUBCORE == SENSOR_CORE)
 // SubCore3 ビルド
 #include "ToF_Sensor.h"
 
@@ -255,27 +269,31 @@ void loop() {
         return;
     }
 
-    MP.Send(1, static_cast<int>(lr_result), 1);
+    MP.Send(SENSOR_TO_MAIN, static_cast<int>(lr_result));
     MPLog("[SubCore3] Sent data: %d\n", static_cast<int>(lr_result));
 }
 
-#elif (SUBCORE == 4)
+#elif (SUBCORE == MQTT_SUBSCRIBE_CORE)
 // SubCore4 ビルド
 #include <MqttGs2200.h>
 #include <TelitWiFi.h>
 #include "config.h"
 
 #define CONSOLE_BAUDRATE 115200
-#define SUBSCRIBE_TIMEOUT 60 * 60000  // ms
+// #define SUBSCRIBE_TIMEOUT 60 * 60000  // ms
+#define SUBSCRIBE_TIMEOUT 60000  // ms
 /*-------------------------------------------------------------------------*
  * Globals:
  *-------------------------------------------------------------------------*/
 TelitWiFi gs2200;
 TWIFI_Params gsparams;
 MqttGs2200 theMqttGs2200(&gs2200);
+MyPacket packet;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
+    memset(&packet, 0, sizeof(packet));
+    MP.begin();
     MQTTGS2200_HostParams hostParams;
     /* initialize digital pin LED_BUILTIN as an output. */
     pinMode(LED0, OUTPUT);
@@ -314,6 +332,7 @@ char server_cid = 0;
 bool served = false;
 uint16_t len, count = 0;
 MQTTGS2200_Mqtt mqtt;
+int ret;
 
 // the loop function runs over and over again forever
 void loop() {
@@ -346,11 +365,25 @@ void loop() {
                 /* just in case something from GS2200 */
                 while (gs2200.available()) {
                     if (false == theMqttGs2200.receive(data)) {
-                        served = false;  // quite the loop
+                        served = false;  // quit the loop
                         break;
                     }
 
                     Serial.println("Recieve data: " + data);
+
+                    if (packet.status == 0) {
+                        /* status -> busy */
+                        packet.status = 1;
+
+                        /* Create a message */
+                        snprintf(packet.message, MSGLEN, "%s", data.c_str());
+
+                        /* Send to MainCore */
+                        ret = MP.Send(MQTT_SUBSCRIBE_TO_MAIN, &packet);
+                        if (ret < 0) {
+                            printf("MP.Send error = %d\n", ret);
+                        }
+                    }
                 }
                 start = millis();
             } else {
@@ -377,7 +410,6 @@ void loop() {
 int left_count = 0;
 int right_count = 0;
 int error_count = 0;
-std::mutex countMutex;
 
 bool mqtt_flag = false;
 
@@ -388,18 +420,15 @@ unsigned int set_mqtt_flag() {
 
 void publish_mqtt_counts() {
     String payload;
-    {
-        std::lock_guard<std::mutex> countLock(countMutex);
-        payload = "Left: " + String(left_count) +
-                  ", Right: " + String(right_count) +
-                  ", Errors: " + String(error_count);
-        // カウントをリセット
-        left_count = 0;
-        right_count = 0;
-        error_count = 0;
-    }
+    payload = "Left: " + String(left_count) +
+              ", Right: " + String(right_count) +
+              ", Errors: " + String(error_count);
+    // カウントをリセット
+    left_count = 0;
+    right_count = 0;
+    error_count = 0;
     MPLog("Publishing: %s\n", payload.c_str());
-    MP.Send(2, &payload, 2);
+    // MP.Send(MAIN_TO_MQTT_PUBLISH, &payload, MQTT_PUBLISH_CORE);
 }
 
 void initLED() {
@@ -410,22 +439,56 @@ void initLED() {
 
 void setup() {
     Serial.begin(CONSOLE_BAUDRATE);  // PCとの通信
+    while (!Serial)
+        ;
     initLED();
 
-    MP.begin(1);
-    // MP.begin(2);
-    MP.begin(3);
-    MP.begin(4);
-    // attachTimerInterrupt(set_mqtt_flag, TIMER_INTERVAL_US);
+    MP.begin(BLUETOOTH_CORE);
+    // MP.begin(MQTT_PUBLISH_CORE);
+    MP.begin(SENSOR_CORE);
+    MP.begin(MQTT_SUBSCRIBE_CORE);
+    attachTimerInterrupt(set_mqtt_flag, TIMER_INTERVAL_US);
+    MP.RecvTimeout(MP_RECV_POLLING);
     Serial.println("MainCore: Started");
 }
 
+SensorResult lr_result = SensorResult::ErrorDetected;  // 初期値をエラー判定に
+char recvBuffer[256];
+String mqtt_message;
+
 void loop() {
-    // delay(40000);
-    // if (mqtt_flag) {
-    // publish_mqtt_counts();
-    // mqtt_flag = false;
-    // }
+    int subid;
+    int8_t msgid;
+    MyPacket* packet;
+
+    if (MP.Recv(SENSOR_TO_MAIN, &lr_result, SENSOR_CORE) == SENSOR_TO_MAIN) {
+        MPLog("Received data: %d\n", static_cast<int>(lr_result));
+        lr_result = static_cast<SensorResult>(lr_result);
+
+        if (lr_result == SensorResult::RightDetected) {
+            right_count++;
+        } else if (lr_result == SensorResult::LeftDetected) {
+            left_count++;
+        } else {
+            error_count++;
+        }
+
+        MP.Send(MAIN_TO_BLUETOOTH, static_cast<int>(lr_result), BLUETOOTH_CORE);
+        MPLog("Sent data: %d\n", static_cast<int>(lr_result));
+    }
+
+    if (MP.Recv(MQTT_SUBSCRIBE_TO_MAIN, &packet, MQTT_SUBSCRIBE_CORE) ==
+        MQTT_SUBSCRIBE_TO_MAIN) {
+        mqtt_message = String(recvBuffer);
+        MPLog("Received data from MQTT\n");
+        MPLog("%s\n", packet->message);
+        packet->status = 0;
+    }
+
+    if (mqtt_flag) {
+        publish_mqtt_counts();
+        mqtt_flag = false;
+    }
 }
 
 #endif
