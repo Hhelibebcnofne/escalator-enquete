@@ -39,7 +39,7 @@ h1 {
     /* バーをより長くするために最大幅を増やす */
     margin: 0 auto;
     top: 230px;
-    margin-top: 10px;
+    margin-top: -10px;
 }
 
 .right-answer-bar {
@@ -50,7 +50,7 @@ h1 {
 
 @layer layer_0 {
     .left-answer-bar {
-        margin-top: -100px;
+        margin-top: -80px;
         display: flex;
         align-items: center;
         margin-bottom: 20px;
@@ -69,7 +69,7 @@ h1 {
     .bar {
         flex: 1;
         width: 100%;
-        height: 180px;
+        height: 100px;
         border-radius: 10px;
         /*角を丸く*/
         /* background-color: #ddd; */
@@ -114,7 +114,7 @@ h1 {
 }
 
 .description {
-    margin-top: 10px;
+    margin-top: -40px;
     font-size: 1.2em;
     color: #333;
 }

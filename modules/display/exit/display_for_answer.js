@@ -11,7 +11,7 @@ let serialCharacteristic;
 
 function count_up(reception_text) {
   console.log(reception_text);
-  if (right_counter == 0 && left_counter == 0) {
+  if(right_counter == 0 && left_counter == 0) {
     const barElement = document.getElementById('myBar'); // IDで要素を取得
     barElement.style.backgroundColor = '#00b1a9'; // 背景色を#dddに設定
   }
@@ -40,6 +40,10 @@ function count_up(reception_text) {
     document.querySelector(".right-answer-ratio-bar-inner").style.width = "0%";
     document.querySelector(".left-answer-ratio-bar-inner2").style.width = "100%";
     document.getElementById("total-person-count").textContent = total_person_count;
+    if(right_counter == 0 && left_counter == 0) {
+      const barElement = document.getElementById('myBar'); // IDで要素を取得
+      barElement.style.backgroundColor = '#ddd'; // 背景色を#dddに設定
+    }
     return;
   } else {
     console.error("data format error");
@@ -58,10 +62,6 @@ function count_up(reception_text) {
   document.querySelector(".left-answer-ratio-bar-inner2").style.width = left_answer_ratio + "100%";
   document.getElementById("total-person-count").textContent = total_person_count;
 
-  if (right_counter == 0 && left_counter == 0) {
-    const barElement = document.getElementById('myBar'); // IDで要素を取得
-    barElement.style.backgroundColor = '#ddd'; // 背景色を#dddに設定
-  }
 }
 
 const sleep = (time) => new Promise((r) => setTimeout(r, time));//timeはミリ秒
@@ -89,7 +89,7 @@ window.onload = function () {
   document.getElementById("total-person-count").textContent = 0;
   document.getElementById("right-answer-description").textContent = right_answer_description;
   document.getElementById("right-answer-ratio").textContent = left_answer_description;
-
+  
 
   // 初期グラフ幅の設定
   document.querySelector(".right-answer-ratio-bar-inner").style.width = "0" + "%";
