@@ -404,10 +404,17 @@ void loop() {
 
 #else
 // MainCore ビルド
-#include <mutex>
+
+#define ARDUINOJSON_ENABLE_PROGMEM 0
+#include <ArduinoJson.h>
 
 #define MQTT_INTERVAL_MS 60000 * 1  // ms
 #define CONSOLE_BAUDRATE 115200
+
+JsonDocument doc;
+
+SensorResult lr_result = SensorResult::ErrorDetected;  // 初期値をエラー判定に
+uint64_t start = millis();
 
 int left_count = 0;
 int right_count = 0;
@@ -446,9 +453,6 @@ void setup() {
     Serial.println("MainCore: Started");
 }
 
-SensorResult lr_result = SensorResult::ErrorDetected;  // 初期値をエラー判定に
-uint64_t start = millis();
-
 void loop() {
     MyPacket* packet;
 
@@ -471,7 +475,28 @@ void loop() {
     if (MP.Recv(MQTT_SUBSCRIBE_TO_MAIN, &packet, MQTT_SUBSCRIBE_CORE) ==
         MQTT_SUBSCRIBE_TO_MAIN) {
         MPLog("Received data from MQTT\n");
-        MPLog("%s\n", packet->message);
+        // MPLog("%s\n", packet->message);
+        DeserializationError error = deserializeJson(doc, packet->message);
+        if (error) {
+            MPLog("Failed to parse JSON\n");
+            MPLog("%s\n", error.c_str());
+        } else {
+            MPLog("Success to parse JSON\n");
+
+            const int id = doc["id"];
+            const char* sentence = doc["sentence"];
+            const char* optionA = doc["optionA"];
+            const char* optionB = doc["optionB"];
+            const char* created_at = doc["created_at"];
+            const char* updated_at = doc["updated_at"];
+
+            MPLog("Received id: %d\n", id);
+            MPLog("Received sentence: %s\n", sentence);
+            MPLog("Received optionA: %s\n", optionA);
+            MPLog("Received optionB: %s\n", optionB);
+            MPLog("Received created_at: %s\n", created_at);
+            MPLog("Received updated_at: %s\n", updated_at);
+        }
         packet->status = 0;
     }
 
