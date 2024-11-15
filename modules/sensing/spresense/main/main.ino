@@ -290,11 +290,12 @@ void loop() {
 TelitWiFi gs2200;
 TWIFI_Params gsparams;
 MqttGs2200 theMqttGs2200(&gs2200);
-MyPacket packet;
+MyPacket mqtt_subscribe_to_main_packet;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-    memset(&packet, 0, sizeof(packet));
+    memset(&mqtt_subscribe_to_main_packet, 0,
+           sizeof(mqtt_subscribe_to_main_packet));
     MP.begin();
     MQTTGS2200_HostParams hostParams;
     /* initialize digital pin LED_BUILTIN as an output. */
@@ -373,15 +374,17 @@ void loop() {
 
                     Serial.println("Recieve data: " + data);
 
-                    if (packet.status == 0) {
+                    if (mqtt_subscribe_to_main_packet.status == 0) {
                         /* status -> busy */
-                        packet.status = 1;
+                        mqtt_subscribe_to_main_packet.status = 1;
 
                         /* Create a message */
-                        snprintf(packet.message, MSGLEN, "%s", data.c_str());
+                        snprintf(mqtt_subscribe_to_main_packet.message, MSGLEN,
+                                 "%s", data.c_str());
 
                         /* Send to MainCore */
-                        ret = MP.Send(MQTT_SUBSCRIBE_TO_MAIN, &packet);
+                        ret = MP.Send(MQTT_SUBSCRIBE_TO_MAIN,
+                                      &mqtt_subscribe_to_main_packet);
                         if (ret < 0) {
                             printf("MP.Send error = %d\n", ret);
                         }
@@ -454,7 +457,7 @@ void setup() {
 }
 
 void loop() {
-    MyPacket* packet;
+    MyPacket* mqtt_subscribe_to_main_packet;
 
     if (MP.Recv(SENSOR_TO_MAIN, &lr_result, SENSOR_CORE) == SENSOR_TO_MAIN) {
         MPLog("Received data: %d\n", static_cast<int>(lr_result));
@@ -472,11 +475,12 @@ void loop() {
         MPLog("Sent data: %d\n", static_cast<int>(lr_result));
     }
 
-    if (MP.Recv(MQTT_SUBSCRIBE_TO_MAIN, &packet, MQTT_SUBSCRIBE_CORE) ==
-        MQTT_SUBSCRIBE_TO_MAIN) {
+    if (MP.Recv(MQTT_SUBSCRIBE_TO_MAIN, &mqtt_subscribe_to_main_packet,
+                MQTT_SUBSCRIBE_CORE) == MQTT_SUBSCRIBE_TO_MAIN) {
         MPLog("Received data from MQTT\n");
-        // MPLog("%s\n", packet->message);
-        DeserializationError error = deserializeJson(doc, packet->message);
+        // MPLog("%s\n", mqtt_subscribe_to_main_packet->message);
+        DeserializationError error =
+            deserializeJson(doc, mqtt_subscribe_to_main_packet->message);
         if (error) {
             MPLog("Failed to parse JSON\n");
             MPLog("%s\n", error.c_str());
@@ -497,7 +501,7 @@ void loop() {
             MPLog("Received created_at: %s\n", created_at);
             MPLog("Received updated_at: %s\n", updated_at);
         }
-        packet->status = 0;
+        mqtt_subscribe_to_main_packet->status = 0;
     }
 
     if (myMsDelta(start) > MQTT_INTERVAL_MS) {
