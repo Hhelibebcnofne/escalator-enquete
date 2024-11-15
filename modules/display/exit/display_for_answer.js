@@ -11,6 +11,10 @@ let serialCharacteristic;
 
 function count_up(reception_text) {
   console.log(reception_text);
+  if (right_counter == 0 && left_counter == 0) {
+    const barElement = document.getElementById('myBar'); // IDで要素を取得
+    barElement.style.backgroundColor = '#00b1a9'; // 背景色を#dddに設定
+  }
 
   if (reception_text == "right_count") {
     right_counter += 1;
@@ -45,7 +49,6 @@ function count_up(reception_text) {
   total_person_count = right_counter + left_counter;
   let right_answer_ratio = total_person_count > 0 ? Math.floor((right_counter / total_person_count) * 100) : 0;
   let left_answer_ratio = 100 - right_answer_ratio;
-  left_counter
   right_answer_ratio = right_answer_ratio.toString();
   left_answer_ratio = left_answer_ratio.toString();
 
@@ -54,6 +57,11 @@ function count_up(reception_text) {
   document.getElementById("left-answer-ratio").textContent = left_answer_ratio + "%";
   document.querySelector(".left-answer-ratio-bar-inner2").style.width = left_answer_ratio + "100%";
   document.getElementById("total-person-count").textContent = total_person_count;
+
+  if (right_counter == 0 && left_counter == 0) {
+    const barElement = document.getElementById('myBar'); // IDで要素を取得
+    barElement.style.backgroundColor = '#ddd'; // 背景色を#dddに設定
+  }
 }
 
 const sleep = (time) => new Promise((r) => setTimeout(r, time));//timeはミリ秒
@@ -81,7 +89,7 @@ window.onload = function () {
   document.getElementById("total-person-count").textContent = 0;
   document.getElementById("right-answer-description").textContent = right_answer_description;
   document.getElementById("right-answer-ratio").textContent = left_answer_description;
-  
+
 
   // 初期グラフ幅の設定
   document.querySelector(".right-answer-ratio-bar-inner").style.width = "0" + "%";

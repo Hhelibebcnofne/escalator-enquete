@@ -47,13 +47,14 @@ h1 {
     align-items: center;
     margin-bottom: 20px;
 }
-@layer layer_0{
-.left-answer-bar {
-    margin-top: -100px;
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-}
+
+@layer layer_0 {
+    .left-answer-bar {
+        margin-top: -100px;
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
 }
 
 .label {
@@ -72,7 +73,7 @@ h1 {
         border-radius: 10px;
         /*角を丸く*/
         /* background-color: #ddd; */
-        background-color: #00b1a9;
+        background-color: #ddd;
         /*グラフのグレーゾーン部分*/
         overflow: hidden;
         position: relative;
@@ -173,10 +174,10 @@ h1 {
 
 @layer layer_b {
     h2 {
-        top: 25px;
-        left: 465px;
+        top: -30px;
+        left: 0px;
         max-width: 250px;
-        position: absolute;
+        position: relative;
         padding: 1.5rem 4rem;
         border: 3px solid #d8d8d8;
         border-radius: 10px;
@@ -184,13 +185,20 @@ h1 {
         background: #f9f9f9;
     }
 
-    h2:before,
-    h2:after {
-
+    h2:before {
+        position: relative;
         content: '';
-        position: absolute;
-        bottom: -14px;
-        left: 6.7em;
+        bottom: -72px;
+        left: 5em;
+        border-width: 14px 12px 0px;
+        border-style: solid;
+    }
+
+    h2:after {
+        position: relative;
+        content: '';
+        top: 68px;
+        left: -5em;
         border-width: 14px 12px 0px;
         border-style: solid;
     }
@@ -205,10 +213,9 @@ h1 {
     }
 
     h3 {
-        top: 420px;
-        left: 465px;
+        position: relative;
+        top: 10px;
         max-width: 340px;
-        position: absolute;
         padding: 1.5rem 3rem;
         border: 3px solid #d8d8d8;
         border-radius: 100px;
