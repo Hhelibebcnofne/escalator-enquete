@@ -1,5 +1,6 @@
 // 共通処理
 #include <MP.h>
+
 #define LR_INVERSION false
 
 #define BLUETOOTH_CORE 1
@@ -44,35 +45,15 @@ void setup() {
 }
 
 void loop() {
-    SensorResult received_data = SensorResult::ErrorDetected;
+    MyPacket* main_to_bluetooth_packet;
 
-    if (MP.Recv(MAIN_TO_BLUETOOTH, &received_data) == MAIN_TO_BLUETOOTH) {
-        MPLog("[SubCore1] Received data: %d\n",
-              static_cast<int>(received_data));
+    if (MP.Recv(MAIN_TO_BLUETOOTH, &main_to_bluetooth_packet) ==
+        MAIN_TO_BLUETOOTH) {
+        MPLog("Received data: %s\n", main_to_bluetooth_packet->message);
 
-        received_data = static_cast<SensorResult>(received_data);
-
-        String message;
-#if LR_INVERSION
-        if (received_data == SensorResult::LeftDetected) {
-            message = "left_count";
-        } else if (received_data == SensorResult::RightDetected) {
-            message = "right_count";
-        } else {
-            message = "count_error";
-        }
-#else
-        if (received_data == SensorResult::LeftDetected) {
-            message = "right_count";
-        } else if (received_data == SensorResult::RightDetected) {
-            message = "left_count";
-        } else {
-            message = "count_error";
-        }
-#endif
-
-        BT.println(message);           // Bluetooth送信
-        MPLog("%s", message.c_str());  // デバッグ出力
+        BT.println(main_to_bluetooth_packet->message);     // Bluetooth送信
+        MPLog("%s\n", main_to_bluetooth_packet->message);  // デバッグ出力
+        main_to_bluetooth_packet->status = 0;
     }
 
     delay(100);  // Bluetooth通信間隔の遅延
@@ -290,11 +271,12 @@ void loop() {
 TelitWiFi gs2200;
 TWIFI_Params gsparams;
 MqttGs2200 theMqttGs2200(&gs2200);
-MyPacket packet;
+MyPacket mqtt_subscribe_to_main_packet;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-    memset(&packet, 0, sizeof(packet));
+    memset(&mqtt_subscribe_to_main_packet, 0,
+           sizeof(mqtt_subscribe_to_main_packet));
     MP.begin();
     MQTTGS2200_HostParams hostParams;
     /* initialize digital pin LED_BUILTIN as an output. */
@@ -373,15 +355,17 @@ void loop() {
 
                     Serial.println("Recieve data: " + data);
 
-                    if (packet.status == 0) {
+                    if (mqtt_subscribe_to_main_packet.status == 0) {
                         /* status -> busy */
-                        packet.status = 1;
+                        mqtt_subscribe_to_main_packet.status = 1;
 
                         /* Create a message */
-                        snprintf(packet.message, MSGLEN, "%s", data.c_str());
+                        snprintf(mqtt_subscribe_to_main_packet.message, MSGLEN,
+                                 "%s", data.c_str());
 
                         /* Send to MainCore */
-                        ret = MP.Send(MQTT_SUBSCRIBE_TO_MAIN, &packet);
+                        ret = MP.Send(MQTT_SUBSCRIBE_TO_MAIN,
+                                      &mqtt_subscribe_to_main_packet);
                         if (ret < 0) {
                             printf("MP.Send error = %d\n", ret);
                         }
@@ -404,20 +388,36 @@ void loop() {
 
 #else
 // MainCore ビルド
-#include <mutex>
+
+#define ARDUINOJSON_ENABLE_PROGMEM 0
+#include <ArduinoJson.h>
 
 #define MQTT_INTERVAL_MS 60000 * 1  // ms
 #define CONSOLE_BAUDRATE 115200
+
+JsonDocument doc;
+
+SensorResult lr_result = SensorResult::ErrorDetected;  // 初期値をエラー判定に
+uint64_t start = millis();
 
 int left_count = 0;
 int right_count = 0;
 int error_count = 0;
 
+MyPacket main_to_bluetooth_packet;
+int ret;
+
 void publish_mqtt_counts() {
     String payload;
+#if LR_INVERSION
+    payload = "Left: " + String(right_count) +
+              ", Right: " + String(left_count) +
+              ", Errors: " + String(error_count);
+#else
     payload = "Left: " + String(left_count) +
               ", Right: " + String(right_count) +
               ", Errors: " + String(error_count);
+#endif
     // カウントをリセット
     left_count = 0;
     right_count = 0;
@@ -446,33 +446,89 @@ void setup() {
     Serial.println("MainCore: Started");
 }
 
-SensorResult lr_result = SensorResult::ErrorDetected;  // 初期値をエラー判定に
-uint64_t start = millis();
-
 void loop() {
-    MyPacket* packet;
-
     if (MP.Recv(SENSOR_TO_MAIN, &lr_result, SENSOR_CORE) == SENSOR_TO_MAIN) {
         MPLog("Received data: %d\n", static_cast<int>(lr_result));
         lr_result = static_cast<SensorResult>(lr_result);
 
-        if (lr_result == SensorResult::RightDetected) {
+        main_to_bluetooth_packet.status = 1;
+#if LR_INVERSION
+        if (lr_result == SensorResult::LeftDetected) {
             right_count++;
-        } else if (lr_result == SensorResult::LeftDetected) {
+            snprintf(main_to_bluetooth_packet.message, MSGLEN, "left_count");
+        } else if (lr_result == SensorResult::RightDetected) {
             left_count++;
+            snprintf(main_to_bluetooth_packet.message, MSGLEN, "right_count");
         } else {
             error_count++;
+            snprintf(main_to_bluetooth_packet.message, MSGLEN, "count_error");
         }
+#else
+        if (lr_result == SensorResult::RightDetected) {
+            right_count++;
+            snprintf(main_to_bluetooth_packet.message, MSGLEN, "left_count");
+        } else if (lr_result == SensorResult::LeftDetected) {
+            left_count++;
+            snprintf(main_to_bluetooth_packet.message, MSGLEN, "right_count");
+        } else {
+            error_count++;
+            snprintf(main_to_bluetooth_packet.message, MSGLEN, "count_error");
+        }
+#endif
 
-        MP.Send(MAIN_TO_BLUETOOTH, static_cast<int>(lr_result), BLUETOOTH_CORE);
-        MPLog("Sent data: %d\n", static_cast<int>(lr_result));
+        ret = MP.Send(MAIN_TO_BLUETOOTH, &main_to_bluetooth_packet,
+                      BLUETOOTH_CORE);
+        if (ret < 0) {
+            printf("MP.Send error = %d\n", ret);
+        }
+        main_to_bluetooth_packet.status = 0;
+        MPLog("Sent data: %s\n", main_to_bluetooth_packet.message);
     }
 
-    if (MP.Recv(MQTT_SUBSCRIBE_TO_MAIN, &packet, MQTT_SUBSCRIBE_CORE) ==
-        MQTT_SUBSCRIBE_TO_MAIN) {
+    MyPacket* mqtt_subscribe_to_main_packet;
+
+    if (MP.Recv(MQTT_SUBSCRIBE_TO_MAIN, &mqtt_subscribe_to_main_packet,
+                MQTT_SUBSCRIBE_CORE) == MQTT_SUBSCRIBE_TO_MAIN) {
         MPLog("Received data from MQTT\n");
-        MPLog("%s\n", packet->message);
-        packet->status = 0;
+        // MPLog("%s\n", mqtt_subscribe_to_main_packet->message);
+        DeserializationError error =
+            deserializeJson(doc, mqtt_subscribe_to_main_packet->message);
+        if (error) {
+            MPLog("Failed to parse JSON\n");
+            MPLog("%s\n", error.c_str());
+        } else {
+            MPLog("Success to parse JSON\n");
+
+            const int id = doc["id"];
+            const char* sentence = doc["sentence"];
+            const char* optionA = doc["optionA"];
+            const char* optionB = doc["optionB"];
+            const char* created_at = doc["created_at"];
+            const char* updated_at = doc["updated_at"];
+
+            MPLog("Received id: %d\n", id);
+            MPLog("Received sentence: %s\n", sentence);
+            MPLog("Received optionA: %s\n", optionA);
+            MPLog("Received optionB: %s\n", optionB);
+            MPLog("Received created_at: %s\n", created_at);
+            MPLog("Received updated_at: %s\n", updated_at);
+            if (main_to_bluetooth_packet.status == 0) {
+                /* status -> busy */
+                main_to_bluetooth_packet.status = 1;
+
+                /* Create a message */
+                snprintf(main_to_bluetooth_packet.message, MSGLEN, "%s,%s",
+                         optionA, optionB);
+
+                /* Send to MainCore */
+                ret = MP.Send(MAIN_TO_BLUETOOTH, &main_to_bluetooth_packet,
+                              BLUETOOTH_CORE);
+                if (ret < 0) {
+                    printf("MP.Send error = %d\n", ret);
+                }
+            }
+        }
+        mqtt_subscribe_to_main_packet->status = 0;
     }
 
     if (myMsDelta(start) > MQTT_INTERVAL_MS) {
