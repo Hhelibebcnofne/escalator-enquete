@@ -7,7 +7,7 @@ erDiagram
 
     questions {
         int id PK "Primary Key"
-        text question_text "Not Null, Question text"
+        text sentence "Not Null, Question text"
         text optionA "Not Null, Option text 1"
         text optionB "Not Null, Option text 2"
         timestamp created_at "Created timestamp"
@@ -40,3 +40,5 @@ erDiagram
 ## 説明
 
 質問文に対する選択肢は常に 1 対 2 が想定されるため，テーブルの分割はしない．
+
+questions テーブルに於いて，sentence，optionA 及び optionB は複合ユニーク制約を持つ．質問文，選択肢 1，選択肢 2 がすべて同一の項目は不要であると考えられるためだ．
