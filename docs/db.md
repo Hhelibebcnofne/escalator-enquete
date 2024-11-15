@@ -14,6 +14,16 @@ erDiagram
         timestamp updated_at "Update timestamp"
     }
 
+    sensing_counts {
+        int id PK "Primary Key"
+        int question_id FK "Foreign Key"
+        int optionA_count "Not Null, Count of option A"
+        int optionB_count "Not Null, Count of option B"
+        int error_count "Not Null"
+        timestamp created_at "Created timestamp"
+        timestamp updated_at "Update timestamp"
+    }
+
     mqtt_messages {
         int id PK "Primary Key"
         text topic "MQTT topic"
@@ -23,8 +33,10 @@ erDiagram
         timestamp updated_at "Update timestamp"
     }
 
+    questions ||--o{ sensing_counts : "1つの質問は0件以上のカウントデータを持つ"
+
 ```
 
 ## 説明
 
-質問文に対する選択肢は 1 対 2 が想定されるため、テーブルの分割はしない．
+質問文に対する選択肢は常に 1 対 2 が想定されるため，テーブルの分割はしない．
