@@ -11,6 +11,10 @@ let serialCharacteristic;
 
 function count_up(reception_text) {
   console.log(reception_text);
+  if (right_counter == 0 && left_counter == 0) {
+    const barElement = document.getElementById('myBar'); // IDで要素を取得
+    barElement.style.backgroundColor = '#00b1a9'; // 背景色を#dddに設定
+  }
 
   if (reception_text == "right_count") {
     right_counter += 1;
@@ -24,18 +28,22 @@ function count_up(reception_text) {
   } else if ((reception_text.split(",").length) == 2) {
     const questions = reception_text.split(",")
     document.getElementById("right-answer-description").textContent = questions[1];
-    document.getElementById("left-answer-description").textContent = questions[0];
+    document.getElementById("right-answer-ratio").textContent = questions[0];
 
     right_counter = 0;
     left_counter = 0;
     total_person_count = 0;
 
     // 表示の更新
-    document.getElementById("right-answer-ratio").textContent = "0%";
+    document.getElementById("left-answer-description").textContent = "0%";
     document.getElementById("left-answer-ratio").textContent = "0%";
     document.querySelector(".right-answer-ratio-bar-inner").style.width = "0%";
-    document.querySelector(".left-answer-ratio-bar-inner").style.width = "0%";
+    document.querySelector(".left-answer-ratio-bar-inner2").style.width = "100%";
     document.getElementById("total-person-count").textContent = total_person_count;
+    if (right_counter == 0 && left_counter == 0) {
+      const barElement = document.getElementById('myBar'); // IDで要素を取得
+      barElement.style.backgroundColor = '#ddd'; // 背景色を#dddに設定
+    }
     return;
   } else {
     console.error("data format error");
@@ -48,38 +56,44 @@ function count_up(reception_text) {
   right_answer_ratio = right_answer_ratio.toString();
   left_answer_ratio = left_answer_ratio.toString();
 
-  document.getElementById("right-answer-ratio").textContent = right_answer_ratio + "%";
+  document.getElementById("left-answer-description").textContent = right_answer_ratio + "%";
   document.querySelector(".right-answer-ratio-bar-inner").style.width = right_answer_ratio + "%";
   document.getElementById("left-answer-ratio").textContent = left_answer_ratio + "%";
-  document.querySelector(".left-answer-ratio-bar-inner").style.width = left_answer_ratio + "%";
+  document.querySelector(".left-answer-ratio-bar-inner2").style.width = left_answer_ratio + "100%";
   document.getElementById("total-person-count").textContent = total_person_count;
+
 }
 
 const sleep = (time) => new Promise((r) => setTimeout(r, time));//timeはミリ秒
 async function animation_for_bar(reception_text) {
   let element_name;
+  let element_nam;
   if (reception_text === "right_count") {
     element_name = "right";
+    element_nam = "left";
   } else {
-    element_name = "left"
+    element_name = "right";
+    element_nam = "left";
   }
-
+  document.querySelector(`.${element_nam}-answer-bar`).classList.add("zoom-in");
   document.querySelector(`.${element_name}-answer-bar`).classList.add("zoom-in");
   await sleep(2000);
+  document.querySelector(`.${element_nam}-answer-bar`).classList.remove("zoom-in");
   document.querySelector(`.${element_name}-answer-bar`).classList.remove("zoom-in");
 }
 
 window.onload = function () {
   // 初期値をHTMLに挿入
-  document.getElementById("right-answer-ratio").textContent = right_counter + "%";
+  document.getElementById("left-answer-description").textContent = right_counter + "%";
   document.getElementById("left-answer-ratio").textContent = left_counter + "%";
   document.getElementById("total-person-count").textContent = 0;
   document.getElementById("right-answer-description").textContent = right_answer_description;
-  document.getElementById("left-answer-description").textContent = left_answer_description;
+  document.getElementById("right-answer-ratio").textContent = left_answer_description;
+
 
   // 初期グラフ幅の設定
   document.querySelector(".right-answer-ratio-bar-inner").style.width = "0" + "%";
-  document.querySelector(".left-answer-ratio-bar-inner").style.width = "0" + "%";
+  document.querySelector(".left-answer-ratio-bar-inner2").style.width = "100" + "%";
 
   bluetooth_connect_button_element.addEventListener("click", connect);
 }
