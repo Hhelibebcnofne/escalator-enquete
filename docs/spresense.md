@@ -4,8 +4,8 @@
 sequenceDiagram
     participant Main as メインプロセス
     participant Bt as Bluetoothプロセス
-    participant Sensor as センサープロセス
     participant Mqtt as MQTTプロセス
+    participant Sensor as センサープロセス
     Sensor ->> Sensor: データ取得
     Sensor ->> Sensor: 左右判定
     Sensor -->> Main: 結果送信

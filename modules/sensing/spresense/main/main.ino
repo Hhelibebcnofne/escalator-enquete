@@ -4,14 +4,13 @@
 #define LR_INVERSION false
 
 #define BLUETOOTH_CORE 1
-#define MQTT_PUBLISH_CORE 2
+#define MQTT_CORE 2
 #define SENSOR_CORE 3
-#define MQTT_SUBSCRIBE_CORE 4
 
 #define SENSOR_TO_MAIN 1
 #define MAIN_TO_BLUETOOTH 2
-#define MQTT_SUBSCRIBE_TO_MAIN 3
-#define MAIN_TO_MQTT_PUBLISH 4
+#define MQTT_TO_MAIN 3
+#define MAIN_TO_MQTT 4
 
 #define MSGLEN 512
 
@@ -59,148 +58,149 @@ void loop() {
     delay(100);  // Bluetooth通信間隔の遅延
 }
 
-#elif (SUBCORE == MQTT_PUBLISH_CORE)
+#elif (SUBCORE == MQTT_CORE)
 // SubCore2 ビルド
 #include <MqttGs2200.h>
 #include <TelitWiFi.h>
 #include "config.h"
 
 #define CONSOLE_BAUDRATE 115200
-#define SUBSCRIBE_TIMEOUT 2000
-
+// #define SUBSCRIBE_TIMEOUT 60 * 60000  // ms
+#define SUBSCRIBE_TIMEOUT 60000  // ms
+/*-------------------------------------------------------------------------*
+ * Globals:
+ *-------------------------------------------------------------------------*/
 TelitWiFi gs2200;
 TWIFI_Params gsparams;
-MqttGs2200 theMqttGs2200 = MqttGs2200(&gs2200);
+MqttGs2200 theMqttGs2200(&gs2200);
+MyPacket mqtt_to_main_packet;
 
-bool initWiFi() {
+// the setup function runs once when you press reset or power the board
+void setup() {
+    memset(&mqtt_to_main_packet, 0, sizeof(mqtt_to_main_packet));
+    MP.begin();
+    MQTTGS2200_HostParams hostParams;
+    /* initialize digital pin LED_BUILTIN as an output. */
+    pinMode(LED0, OUTPUT);
+    digitalWrite(LED0, LOW);  // turn the LED off (LOW is the voltage level)
+    Serial.begin(CONSOLE_BAUDRATE);  // talk to PC
+
+    /* Initialize SPI access of GS2200 */
+    Init_GS2200_SPI_type(iS110B_TypeC);
+
+    /* Initialize AT Command Library Buffer */
     gsparams.mode = ATCMD_MODE_STATION;
     gsparams.psave = ATCMD_PSAVE_DEFAULT;
-
-    Serial.println("Wi-Fiの初期化中...");
     if (gs2200.begin(gsparams)) {
-        Serial.println("GS2200の初期化に失敗しました");
-        return false;
+        ConsoleLog("GS2200 Initilization Fails");
+        while (1)
+            ;
     }
-    Serial.println("GS2200の初期化が成功しました。");
 
+    /* GS2200 Association to AP */
     if (gs2200.activate_station(AP_SSID, PASSPHRASE)) {
-        Serial.println("Wi-Fiの接続に失敗しました");
-        return false;
+        ConsoleLog("Association Fails");
+        while (1)
+            ;
     }
-    Serial.println("SSID: " + String(AP_SSID) + " に接続しました");
-    return true;
-}
-
-bool initMQTT() {
-    MQTTGS2200_HostParams hostParams;
     hostParams.host = (char*)MQTT_SRVR;
     hostParams.port = (char*)MQTT_PORT;
     hostParams.clientID = (char*)MQTT_CLI_ID;
     hostParams.userName = (char*)MQTT_USERNAME;
     hostParams.password = (char*)MQTT_PASSWPRD;
 
-    Serial.println("MQTTの初期化中...");
     theMqttGs2200.begin(&hostParams);
-    if (!theMqttGs2200.connect()) {
-        Serial.println("MQTTの接続に失敗しました");
-        return false;
-    }
-    Serial.println("MQTTに接続しました。");
-    return true;
+    MP.RecvTimeout(MP_RECV_POLLING);
+
+    digitalWrite(LED0, HIGH);  // turn on LED
 }
 
-bool mqttPublish(char* send_message) {
-    Serial.println("MQTTメッセージの送信準備中");
-    WiFi_InitESCBuffer();
-    MQTTGS2200_Mqtt mqtt;
+char server_cid = 0;
+bool served = false;
+uint16_t len, count = 0;
+MQTTGS2200_Mqtt mqtt;
+int ret;
 
-    // Publishトピックを指定
-    strncpy(mqtt.params.topic, MQTT_PUBLISH_TOPIC, sizeof(mqtt.params.topic));
-    mqtt.params.QoS = 0;
-    mqtt.params.retain = 0;
+// the loop function runs over and over again forever
+void loop() {
+    MyPacket* main_to_mqtt_packet;
+    if (!served) {
+        // Start a MQTT client
+        ConsoleLog("Start MQTT Client");
+        if (false == theMqttGs2200.connect()) {
+            return;
+        }
 
-    // メッセージとして引数 `send_message` をセット
-    strncpy(mqtt.params.message, send_message, sizeof(mqtt.params.message));
-    mqtt.params.len = strlen(mqtt.params.message);
+        ConsoleLog("Start to receive MQTT Message");
+        // Prepare for the next chunck of incoming data
+        WiFi_InitESCBuffer();
 
-    // メッセージ送信
-    if (theMqttGs2200.publish(&mqtt)) {
-        Serial.println("送信したメッセージ: " + String(send_message));
+        // Start the loop to receive the data
+        strncpy(mqtt.params.topic, MQTT_SUBSCRIBE_TOPIC,
+                sizeof(mqtt.params.topic));
+        mqtt.params.QoS = 0;
+        mqtt.params.retain = 0;
+        if (true == theMqttGs2200.subscribe(&mqtt)) {
+            ConsolePrintf("Subscribed! \n");
+        }
+
+        served = true;
     } else {
-        Serial.println("メッセージの送信に失敗しました: " +
-                       String(send_message));
-        return false;
-    }
-    theMqttGs2200.stop();
-    return true;
-}
+        uint64_t start = millis();
+        while (served) {
+            if (MP.Recv(MAIN_TO_MQTT, &main_to_mqtt_packet) == MAIN_TO_MQTT) {
+                MPLog("Received data: %s\n", main_to_mqtt_packet->message);
 
-bool mqttSubscribe() {
-    Serial.println("MQTTメッセージの受信準備中");
-    MQTTGS2200_Mqtt mqtt;
+                strncpy(mqtt.params.topic, MQTT_PUBLISH_TOPIC,
+                        sizeof(mqtt.params.topic));
+                strncpy(mqtt.params.message, main_to_mqtt_packet->message,
+                        sizeof(mqtt.params.message));
 
-    // Subscribeトピックを指定
-    strncpy(mqtt.params.topic, MQTT_SUBSCRIBE_TOPIC, sizeof(mqtt.params.topic));
-    mqtt.params.QoS = 0;
-    mqtt.params.retain = 0;
-
-    if (theMqttGs2200.subscribe(&mqtt)) {
-        Serial.println("/mqtt/spresense/subscribe に購読しました");
-    } else {
-        Serial.println("購読に失敗しました");
-        return false;
-    }
-
-    unsigned long start = millis();
-    while (millis() - start < SUBSCRIBE_TIMEOUT) {
-        String data;
-        while (gs2200.available()) {
-            if (!theMqttGs2200.receive(data)) {
-                Serial.println("データの受信に失敗しました。");
+                mqtt.params.len = strlen(mqtt.params.message);
+                if (true == theMqttGs2200.publish(&mqtt)) {
+                    MPLog("Published: %s\n", main_to_mqtt_packet->message);
+                }
+                strncpy(mqtt.params.topic, MQTT_SUBSCRIBE_TOPIC,
+                        sizeof(mqtt.params.topic));
+                main_to_mqtt_packet->status = 0;
             }
-            Serial.println("受信データ: " + data);
+
+            if (myMsDelta(start) < SUBSCRIBE_TIMEOUT) {
+                String data;
+                /* just in case something from GS2200 */
+                while (gs2200.available()) {
+                    if (false == theMqttGs2200.receive(data)) {
+                        served = false;  // quit the loop
+                        break;
+                    }
+
+                    Serial.println("Recieve data: " + data);
+
+                    if (mqtt_to_main_packet.status == 0) {
+                        /* status -> busy */
+                        mqtt_to_main_packet.status = 1;
+
+                        /* Create a message */
+                        snprintf(mqtt_to_main_packet.message, MSGLEN, "%s",
+                                 data.c_str());
+
+                        /* Send to MainCore */
+                        ret = MP.Send(MQTT_TO_MAIN, &mqtt_to_main_packet);
+                        if (ret < 0) {
+                            printf("MP.Send error = %d\n", ret);
+                        }
+                    }
+                }
+                start = millis();
+            } else {
+                ConsolePrintf("Subscribed over for %d ms! \n",
+                              SUBSCRIBE_TIMEOUT);
+                theMqttGs2200.stop();
+                served = false;
+                exit(0);
+            }
         }
     }
-
-    Serial.printf("購読タイムアウト: %d ms経過しました！\n", SUBSCRIBE_TIMEOUT);
-    theMqttGs2200.stop();
-    return true;
-}
-
-void setup() {
-    MP.begin();
-    Serial.begin(CONSOLE_BAUDRATE);  // PCとの通信
-    MPLog("[SubCore2] WiFi Setup\n");
-    Init_GS2200_SPI_type(iS110B_TypeC);  // GS2200のSPI初期化
-    // initLED(); // LEDの初期化
-
-    if (!initWiFi()) {
-        Serial.println("Wi-Fiの初期化に失敗しました。処理を停止します。");
-        while (1)
-            ;
-    }
-
-    if (!initMQTT()) {
-        Serial.println("MQTTの初期化に失敗しました。処理を停止します。");
-        while (1)
-            ;
-    }
-
-    digitalWrite(LED0, HIGH);  // LEDを点灯
-    Serial.println("LEDを点灯しました。");
-    MPLog("[SubCore2] Started\n");
-}
-
-void loop() {
-    String message;
-    if (MP.Recv(2, &message) == 2) {
-        MPLog("[SubCore2] Received data: %s\n", message.c_str());
-        mqttPublish((char*)message.c_str());
-        MPLog("[SubCore2] MQTT Publish\n");
-    } else {
-        MPLog("[SubCore2] No data received\n");
-    }
-    delay(5000);
 }
 
 #elif (SUBCORE == SENSOR_CORE)
@@ -256,156 +256,7 @@ void loop() {
     MPLog("[SubCore3] Sent data: %d\n", static_cast<int>(lr_result));
 }
 
-#elif (SUBCORE == MQTT_SUBSCRIBE_CORE)
-// SubCore4 ビルド
-#include <MqttGs2200.h>
-#include <TelitWiFi.h>
-#include "config.h"
-
-#define CONSOLE_BAUDRATE 115200
-// #define SUBSCRIBE_TIMEOUT 60 * 60000  // ms
-#define SUBSCRIBE_TIMEOUT 60000  // ms
-/*-------------------------------------------------------------------------*
- * Globals:
- *-------------------------------------------------------------------------*/
-TelitWiFi gs2200;
-TWIFI_Params gsparams;
-MqttGs2200 theMqttGs2200(&gs2200);
-MyPacket mqtt_subscribe_to_main_packet;
-
-// the setup function runs once when you press reset or power the board
-void setup() {
-    memset(&mqtt_subscribe_to_main_packet, 0,
-           sizeof(mqtt_subscribe_to_main_packet));
-    MP.begin();
-    MQTTGS2200_HostParams hostParams;
-    /* initialize digital pin LED_BUILTIN as an output. */
-    pinMode(LED0, OUTPUT);
-    digitalWrite(LED0, LOW);  // turn the LED off (LOW is the voltage level)
-    Serial.begin(CONSOLE_BAUDRATE);  // talk to PC
-
-    /* Initialize SPI access of GS2200 */
-    Init_GS2200_SPI_type(iS110B_TypeC);
-
-    /* Initialize AT Command Library Buffer */
-    gsparams.mode = ATCMD_MODE_STATION;
-    gsparams.psave = ATCMD_PSAVE_DEFAULT;
-    if (gs2200.begin(gsparams)) {
-        ConsoleLog("GS2200 Initilization Fails");
-        while (1)
-            ;
-    }
-
-    /* GS2200 Association to AP */
-    if (gs2200.activate_station(AP_SSID, PASSPHRASE)) {
-        ConsoleLog("Association Fails");
-        while (1)
-            ;
-    }
-    hostParams.host = (char*)MQTT_SRVR;
-    hostParams.port = (char*)MQTT_PORT;
-    hostParams.clientID = (char*)MQTT_CLI_ID;
-    hostParams.userName = (char*)MQTT_USERNAME;
-    hostParams.password = (char*)MQTT_PASSWPRD;
-
-    theMqttGs2200.begin(&hostParams);
-    MP.RecvTimeout(MP_RECV_POLLING);
-
-    digitalWrite(LED0, HIGH);  // turn on LED
-}
-
-char server_cid = 0;
-bool served = false;
-uint16_t len, count = 0;
-MQTTGS2200_Mqtt mqtt;
-int ret;
-
-// the loop function runs over and over again forever
-void loop() {
-    MyPacket* main_to_mqtt_publish_packet;
-    if (!served) {
-        // Start a MQTT client
-        ConsoleLog("Start MQTT Client");
-        if (false == theMqttGs2200.connect()) {
-            return;
-        }
-
-        ConsoleLog("Start to receive MQTT Message");
-        // Prepare for the next chunck of incoming data
-        WiFi_InitESCBuffer();
-
-        // Start the loop to receive the data
-        strncpy(mqtt.params.topic, MQTT_SUBSCRIBE_TOPIC,
-                sizeof(mqtt.params.topic));
-        mqtt.params.QoS = 0;
-        mqtt.params.retain = 0;
-        if (true == theMqttGs2200.subscribe(&mqtt)) {
-            ConsolePrintf("Subscribed! \n");
-        }
-
-        served = true;
-    } else {
-        uint64_t start = millis();
-        while (served) {
-            if (MP.Recv(MAIN_TO_MQTT_PUBLISH, &main_to_mqtt_publish_packet) ==
-                MAIN_TO_MQTT_PUBLISH) {
-                MPLog("Received data: %s\n",
-                      main_to_mqtt_publish_packet->message);
-
-                strncpy(mqtt.params.topic, MQTT_PUBLISH_TOPIC,
-                        sizeof(mqtt.params.topic));
-                strncpy(mqtt.params.message,
-                        main_to_mqtt_publish_packet->message,
-                        sizeof(mqtt.params.message));
-
-                mqtt.params.len = strlen(mqtt.params.message);
-                if (true == theMqttGs2200.publish(&mqtt)) {
-                    MPLog("Published: %s\n",
-                          main_to_mqtt_publish_packet->message);
-                }
-                strncpy(mqtt.params.topic, MQTT_SUBSCRIBE_TOPIC,
-                        sizeof(mqtt.params.topic));
-                main_to_mqtt_publish_packet->status = 0;
-            }
-
-            if (myMsDelta(start) < SUBSCRIBE_TIMEOUT) {
-                String data;
-                /* just in case something from GS2200 */
-                while (gs2200.available()) {
-                    if (false == theMqttGs2200.receive(data)) {
-                        served = false;  // quit the loop
-                        break;
-                    }
-
-                    Serial.println("Recieve data: " + data);
-
-                    if (mqtt_subscribe_to_main_packet.status == 0) {
-                        /* status -> busy */
-                        mqtt_subscribe_to_main_packet.status = 1;
-
-                        /* Create a message */
-                        snprintf(mqtt_subscribe_to_main_packet.message, MSGLEN,
-                                 "%s", data.c_str());
-
-                        /* Send to MainCore */
-                        ret = MP.Send(MQTT_SUBSCRIBE_TO_MAIN,
-                                      &mqtt_subscribe_to_main_packet);
-                        if (ret < 0) {
-                            printf("MP.Send error = %d\n", ret);
-                        }
-                    }
-                }
-                start = millis();
-            } else {
-                ConsolePrintf("Subscribed over for %d ms! \n",
-                              SUBSCRIBE_TIMEOUT);
-                theMqttGs2200.stop();
-                served = false;
-                exit(0);
-            }
-        }
-    }
-}
+#elif (SUBCORE == 4)
 
 #elif (SUBCORE == 5)
 // SubCore5 ビルド
@@ -430,7 +281,7 @@ int right_count = 0;
 int error_count = 0;
 
 MyPacket main_to_bluetooth_packet;
-MyPacket main_to_mqtt_publish_packet;
+MyPacket main_to_mqtt_packet;
 int ret;
 
 void publish_mqtt_counts() {
@@ -457,12 +308,11 @@ void publish_mqtt_counts() {
     MPLog("Publishing: %s\n", mqtt_publish_str.c_str());
     // MQTTコアに送信
 
-    if (main_to_mqtt_publish_packet.status == 0) {
-        main_to_mqtt_publish_packet.status = 1;
-        snprintf(main_to_mqtt_publish_packet.message, MSGLEN, "%s",
+    if (main_to_mqtt_packet.status == 0) {
+        main_to_mqtt_packet.status = 1;
+        snprintf(main_to_mqtt_packet.message, MSGLEN, "%s",
                  mqtt_publish_str.c_str());
-        ret = MP.Send(MAIN_TO_MQTT_PUBLISH, &main_to_mqtt_publish_packet,
-                      MQTT_SUBSCRIBE_CORE);
+        ret = MP.Send(MAIN_TO_MQTT, &main_to_mqtt_packet, MQTT_CORE);
         if (ret < 0) {
             printf("MP.Send error = %d\n", ret);
         }
@@ -482,9 +332,8 @@ void setup() {
     initLED();
 
     MP.begin(BLUETOOTH_CORE);
-    // MP.begin(MQTT_PUBLISH_CORE);
+    MP.begin(MQTT_CORE);
     MP.begin(SENSOR_CORE);
-    MP.begin(MQTT_SUBSCRIBE_CORE);
     MP.RecvTimeout(MP_RECV_POLLING);
     Serial.println("MainCore: Started");
 }
@@ -528,14 +377,14 @@ void loop() {
         MPLog("Sent data: %s\n", main_to_bluetooth_packet.message);
     }
 
-    MyPacket* mqtt_subscribe_to_main_packet;
+    MyPacket* mqtt_to_main_packet;
 
-    if (MP.Recv(MQTT_SUBSCRIBE_TO_MAIN, &mqtt_subscribe_to_main_packet,
-                MQTT_SUBSCRIBE_CORE) == MQTT_SUBSCRIBE_TO_MAIN) {
+    if (MP.Recv(MQTT_TO_MAIN, &mqtt_to_main_packet, MQTT_CORE) ==
+        MQTT_TO_MAIN) {
         MPLog("Received data from MQTT\n");
-        // MPLog("%s\n", mqtt_subscribe_to_main_packet->message);
-        DeserializationError error = deserializeJson(
-            mqtt_subscribe_json, mqtt_subscribe_to_main_packet->message);
+        // MPLog("%s\n", mqtt_to_main_packet->message);
+        DeserializationError error =
+            deserializeJson(mqtt_subscribe_json, mqtt_to_main_packet->message);
         if (error) {
             MPLog("Failed to parse JSON\n");
             MPLog("%s\n", error.c_str());
@@ -569,7 +418,7 @@ void loop() {
                 }
             }
         }
-        mqtt_subscribe_to_main_packet->status = 0;
+        mqtt_to_main_packet->status = 0;
     }
 
     if (myMsDelta(start) > MQTT_INTERVAL_MS) {
