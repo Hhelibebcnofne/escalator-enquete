@@ -10,8 +10,8 @@
 
 #define SENSOR_TO_MAIN 1
 #define MAIN_TO_BLUETOOTH 2
-#define MQTT_SUBSCRIBE_TO_MAIN 3
-#define MAIN_TO_MQTT_PUBLISH 4
+#define MQTT_TO_MAIN 3
+#define MAIN_TO_MQTT 4
 
 #define MSGLEN 512
 
@@ -129,12 +129,11 @@ void loop() {
 TelitWiFi gs2200;
 TWIFI_Params gsparams;
 MqttGs2200 theMqttGs2200(&gs2200);
-MyPacket mqtt_subscribe_to_main_packet;
+MyPacket mqtt_to_main_packet;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-    memset(&mqtt_subscribe_to_main_packet, 0,
-           sizeof(mqtt_subscribe_to_main_packet));
+    memset(&mqtt_to_main_packet, 0, sizeof(mqtt_to_main_packet));
     MP.begin();
     MQTTGS2200_HostParams hostParams;
     /* initialize digital pin LED_BUILTIN as an output. */
@@ -180,7 +179,7 @@ int ret;
 
 // the loop function runs over and over again forever
 void loop() {
-    MyPacket* main_to_mqtt_publish_packet;
+    MyPacket* main_to_mqtt_packet;
     if (!served) {
         // Start a MQTT client
         ConsoleLog("Start MQTT Client");
@@ -205,25 +204,21 @@ void loop() {
     } else {
         uint64_t start = millis();
         while (served) {
-            if (MP.Recv(MAIN_TO_MQTT_PUBLISH, &main_to_mqtt_publish_packet) ==
-                MAIN_TO_MQTT_PUBLISH) {
-                MPLog("Received data: %s\n",
-                      main_to_mqtt_publish_packet->message);
+            if (MP.Recv(MAIN_TO_MQTT, &main_to_mqtt_packet) == MAIN_TO_MQTT) {
+                MPLog("Received data: %s\n", main_to_mqtt_packet->message);
 
                 strncpy(mqtt.params.topic, MQTT_PUBLISH_TOPIC,
                         sizeof(mqtt.params.topic));
-                strncpy(mqtt.params.message,
-                        main_to_mqtt_publish_packet->message,
+                strncpy(mqtt.params.message, main_to_mqtt_packet->message,
                         sizeof(mqtt.params.message));
 
                 mqtt.params.len = strlen(mqtt.params.message);
                 if (true == theMqttGs2200.publish(&mqtt)) {
-                    MPLog("Published: %s\n",
-                          main_to_mqtt_publish_packet->message);
+                    MPLog("Published: %s\n", main_to_mqtt_packet->message);
                 }
                 strncpy(mqtt.params.topic, MQTT_SUBSCRIBE_TOPIC,
                         sizeof(mqtt.params.topic));
-                main_to_mqtt_publish_packet->status = 0;
+                main_to_mqtt_packet->status = 0;
             }
 
             if (myMsDelta(start) < SUBSCRIBE_TIMEOUT) {
@@ -237,17 +232,16 @@ void loop() {
 
                     Serial.println("Recieve data: " + data);
 
-                    if (mqtt_subscribe_to_main_packet.status == 0) {
+                    if (mqtt_to_main_packet.status == 0) {
                         /* status -> busy */
-                        mqtt_subscribe_to_main_packet.status = 1;
+                        mqtt_to_main_packet.status = 1;
 
                         /* Create a message */
-                        snprintf(mqtt_subscribe_to_main_packet.message, MSGLEN,
-                                 "%s", data.c_str());
+                        snprintf(mqtt_to_main_packet.message, MSGLEN, "%s",
+                                 data.c_str());
 
                         /* Send to MainCore */
-                        ret = MP.Send(MQTT_SUBSCRIBE_TO_MAIN,
-                                      &mqtt_subscribe_to_main_packet);
+                        ret = MP.Send(MQTT_TO_MAIN, &mqtt_to_main_packet);
                         if (ret < 0) {
                             printf("MP.Send error = %d\n", ret);
                         }
@@ -288,7 +282,7 @@ int right_count = 0;
 int error_count = 0;
 
 MyPacket main_to_bluetooth_packet;
-MyPacket main_to_mqtt_publish_packet;
+MyPacket main_to_mqtt_packet;
 int ret;
 
 void publish_mqtt_counts() {
@@ -315,12 +309,11 @@ void publish_mqtt_counts() {
     MPLog("Publishing: %s\n", mqtt_publish_str.c_str());
     // MQTTコアに送信
 
-    if (main_to_mqtt_publish_packet.status == 0) {
-        main_to_mqtt_publish_packet.status = 1;
-        snprintf(main_to_mqtt_publish_packet.message, MSGLEN, "%s",
+    if (main_to_mqtt_packet.status == 0) {
+        main_to_mqtt_packet.status = 1;
+        snprintf(main_to_mqtt_packet.message, MSGLEN, "%s",
                  mqtt_publish_str.c_str());
-        ret = MP.Send(MAIN_TO_MQTT_PUBLISH, &main_to_mqtt_publish_packet,
-                      MQTT_SUBSCRIBE_CORE);
+        ret = MP.Send(MAIN_TO_MQTT, &main_to_mqtt_packet, MQTT_SUBSCRIBE_CORE);
         if (ret < 0) {
             printf("MP.Send error = %d\n", ret);
         }
@@ -385,14 +378,14 @@ void loop() {
         MPLog("Sent data: %s\n", main_to_bluetooth_packet.message);
     }
 
-    MyPacket* mqtt_subscribe_to_main_packet;
+    MyPacket* mqtt_to_main_packet;
 
-    if (MP.Recv(MQTT_SUBSCRIBE_TO_MAIN, &mqtt_subscribe_to_main_packet,
-                MQTT_SUBSCRIBE_CORE) == MQTT_SUBSCRIBE_TO_MAIN) {
+    if (MP.Recv(MQTT_TO_MAIN, &mqtt_to_main_packet, MQTT_SUBSCRIBE_CORE) ==
+        MQTT_TO_MAIN) {
         MPLog("Received data from MQTT\n");
-        // MPLog("%s\n", mqtt_subscribe_to_main_packet->message);
-        DeserializationError error = deserializeJson(
-            mqtt_subscribe_json, mqtt_subscribe_to_main_packet->message);
+        // MPLog("%s\n", mqtt_to_main_packet->message);
+        DeserializationError error =
+            deserializeJson(mqtt_subscribe_json, mqtt_to_main_packet->message);
         if (error) {
             MPLog("Failed to parse JSON\n");
             MPLog("%s\n", error.c_str());
@@ -426,7 +419,7 @@ void loop() {
                 }
             }
         }
-        mqtt_subscribe_to_main_packet->status = 0;
+        mqtt_to_main_packet->status = 0;
     }
 
     if (myMsDelta(start) > MQTT_INTERVAL_MS) {
