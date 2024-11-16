@@ -17,9 +17,9 @@ erDiagram
     sensing_counts {
         int id PK "Primary Key"
         int question_id FK "Foreign Key"
-        int optionA_count "Not Null, Count of option A"
-        int optionB_count "Not Null, Count of option B"
-        int error_count "Not Null"
+        int optionA_count "Not Null, Default 0, Count of option A."
+        int optionB_count "Not Null, Default 0, Count of option B."
+        int error_count "Not Null, Default 0, Count of Counting error."
         timestamp created_at "Created timestamp"
         timestamp updated_at "Update timestamp"
     }

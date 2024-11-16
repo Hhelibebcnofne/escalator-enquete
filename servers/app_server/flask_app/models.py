@@ -89,3 +89,40 @@ class Questions(db.Model):
             "created_at": self.created_at,
             "updated_at": self.updated_at,
         }
+
+
+class SensingCounts(db.Model):
+    __tablename__ = "sensing_counts"
+    id: int = db.Column(db.Integer, primary_key=True)
+    question_id: int = db.Column(
+        db.Integer, db.ForeignKey("questions.id", ondelete="CASCADE"), nullable=False
+    )
+    optionA_count: int = db.Column(db.Integer, default=0, nullable=False)
+    optionB_count: int = db.Column(db.Integer, default=0, nullable=False)
+    error_count: int = db.Column(db.Integer, default=0, nullable=False)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(
+        db.DateTime, server_default=db.func.now(), onupdate=db.func.now()
+    )
+
+    def __init__(
+        self, question_id: int, optionA_count: int, optionB_count: int, error_count: int
+    ) -> None:
+        self.question_id = question_id
+        self.optionA_count = optionA_count
+        self.optionB_count = optionB_count
+        self.error_count = error_count
+
+    def __repr__(self) -> str:
+        return f"<SensingCount {self.question_id}>"
+
+    def toDict(self) -> dict:
+        return {
+            "id": self.id,
+            "question_id": self.question_id,
+            "optionA_count": self.optionA_count,
+            "optionB_count": self.optionB_count,
+            "error_count": self.error_count,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+        }
