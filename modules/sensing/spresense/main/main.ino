@@ -4,9 +4,8 @@
 #define LR_INVERSION false
 
 #define BLUETOOTH_CORE 1
-#define MQTT_PUBLISH_CORE 2
+#define MQTT_CORE 2
 #define SENSOR_CORE 3
-#define MQTT_CORE 4
 
 #define SENSOR_TO_MAIN 1
 #define MAIN_TO_BLUETOOTH 2
@@ -59,63 +58,8 @@ void loop() {
     delay(100);  // Bluetooth通信間隔の遅延
 }
 
-#elif (SUBCORE == MQTT_PUBLISH_CORE)
-
-#elif (SUBCORE == SENSOR_CORE)
-// SubCore3 ビルド
-#include "ToF_Sensor.h"
-
-#define WALL_THRESHOLD 1600
-// #define WALL_THRESHOLD 500
-#define USE_HALF_WALL_THRESHOLD true
-
-#if USE_HALF_WALL_THRESHOLD
-
-#define LR_THRESHOLD (int)(WALL_THRESHOLD / 2)
-
-#else
-
-#define LR_THRESHOLD 200
-
-#endif
-
-ToF_Sensor tof_sensor;
-
-SensorResult lr_result = SensorResult::ErrorDetected;  // 初期値をエラー判定に
-
-void setup() {
-    MP.begin();
-    tof_sensor.setup();
-    MPLog("[SubCore3] Started\n");
-}
-
-void loop() {
-    delay(100);
-    uint16_t distance_value = tof_sensor.get_distance();
-    // MPLog("Distance: %d\n", distance_value);
-
-    if (distance_value > LR_THRESHOLD && distance_value < WALL_THRESHOLD) {
-        if (lr_result == SensorResult::RightDetected) {
-            return;
-        }
-        lr_result = SensorResult::RightDetected;
-    } else if (distance_value < LR_THRESHOLD &&
-               distance_value > 60) {  // ノイズ対策の60
-        if (lr_result == SensorResult::LeftDetected) {
-            return;
-        }
-        lr_result = SensorResult::LeftDetected;
-    } else {
-        lr_result = SensorResult::ErrorDetected;
-        return;
-    }
-
-    MP.Send(SENSOR_TO_MAIN, static_cast<int>(lr_result));
-    MPLog("[SubCore3] Sent data: %d\n", static_cast<int>(lr_result));
-}
-
 #elif (SUBCORE == MQTT_CORE)
-// SubCore4 ビルド
+// SubCore2 ビルド
 #include <MqttGs2200.h>
 #include <TelitWiFi.h>
 #include "config.h"
@@ -259,6 +203,61 @@ void loop() {
     }
 }
 
+#elif (SUBCORE == SENSOR_CORE)
+// SubCore3 ビルド
+#include "ToF_Sensor.h"
+
+#define WALL_THRESHOLD 1600
+// #define WALL_THRESHOLD 500
+#define USE_HALF_WALL_THRESHOLD true
+
+#if USE_HALF_WALL_THRESHOLD
+
+#define LR_THRESHOLD (int)(WALL_THRESHOLD / 2)
+
+#else
+
+#define LR_THRESHOLD 200
+
+#endif
+
+ToF_Sensor tof_sensor;
+
+SensorResult lr_result = SensorResult::ErrorDetected;  // 初期値をエラー判定に
+
+void setup() {
+    MP.begin();
+    tof_sensor.setup();
+    MPLog("[SubCore3] Started\n");
+}
+
+void loop() {
+    delay(100);
+    uint16_t distance_value = tof_sensor.get_distance();
+    // MPLog("Distance: %d\n", distance_value);
+
+    if (distance_value > LR_THRESHOLD && distance_value < WALL_THRESHOLD) {
+        if (lr_result == SensorResult::RightDetected) {
+            return;
+        }
+        lr_result = SensorResult::RightDetected;
+    } else if (distance_value < LR_THRESHOLD &&
+               distance_value > 60) {  // ノイズ対策の60
+        if (lr_result == SensorResult::LeftDetected) {
+            return;
+        }
+        lr_result = SensorResult::LeftDetected;
+    } else {
+        lr_result = SensorResult::ErrorDetected;
+        return;
+    }
+
+    MP.Send(SENSOR_TO_MAIN, static_cast<int>(lr_result));
+    MPLog("[SubCore3] Sent data: %d\n", static_cast<int>(lr_result));
+}
+
+#elif (SUBCORE == 4)
+
 #elif (SUBCORE == 5)
 // SubCore5 ビルド
 
@@ -333,8 +332,8 @@ void setup() {
     initLED();
 
     MP.begin(BLUETOOTH_CORE);
-    MP.begin(SENSOR_CORE);
     MP.begin(MQTT_CORE);
+    MP.begin(SENSOR_CORE);
     MP.RecvTimeout(MP_RECV_POLLING);
     Serial.println("MainCore: Started");
 }
