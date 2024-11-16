@@ -14,8 +14,11 @@ sequenceDiagram
     Bt ->> Bt: Bluetooth出力
     Mqtt ->> Mqtt: MQTTサブスクライブ
     Mqtt -->> Main: 表示データ送信
+    Main ->> Mqtt: 現状のカウントデータ送信
+    Mqtt ->> Mqtt: MQTTパブリッシュ
+    Main ->> Main: カウントの初期化
     Main ->> Bt: 表示データ送信
     Bt ->> Bt: Bluetooth出力
-    Main ->> Mqtt: パブリッシュデータ送信
+    Main ->> Mqtt: カウントデータ送信
     Mqtt ->> Mqtt: MQTTパブリッシュ
 ```
