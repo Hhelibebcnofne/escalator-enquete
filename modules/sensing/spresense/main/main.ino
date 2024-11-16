@@ -309,6 +309,8 @@ void setup() {
     hostParams.password = (char*)MQTT_PASSWPRD;
 
     theMqttGs2200.begin(&hostParams);
+    MP.RecvTimeout(MP_RECV_POLLING);
+
     digitalWrite(LED0, HIGH);  // turn on LED
 }
 
@@ -320,6 +322,7 @@ int ret;
 
 // the loop function runs over and over again forever
 void loop() {
+    MyPacket* main_to_mqtt_publish_packet;
     if (!served) {
         // Start a MQTT client
         ConsoleLog("Start MQTT Client");
@@ -344,6 +347,27 @@ void loop() {
     } else {
         uint64_t start = millis();
         while (served) {
+            // ここにMainからデータを受け取ってMQTT_PUBLISH_TOPIC宛にpublishする処理を書く……？
+
+            if (MP.Recv(MAIN_TO_MQTT_PUBLISH, &main_to_mqtt_publish_packet) ==
+                MAIN_TO_MQTT_PUBLISH) {
+                ConsolePrintf("Received data: %s\n",
+                              main_to_mqtt_publish_packet->message);
+                mqtt.params.len = strlen(main_to_mqtt_publish_packet->message);
+                strncpy(mqtt.params.topic, MQTT_PUBLISH_TOPIC,
+                        sizeof(mqtt.params.topic));
+                strncpy(mqtt.params.message,
+                        main_to_mqtt_publish_packet->message,
+                        sizeof(mqtt.params.message));
+                if (true == theMqttGs2200.publish(&mqtt)) {
+                    ConsolePrintf("Published: %s\n",
+                                  main_to_mqtt_publish_packet->message);
+                }
+                strncpy(mqtt.params.topic, MQTT_SUBSCRIBE_TOPIC,
+                        sizeof(mqtt.params.topic));
+                main_to_mqtt_publish_packet->status = 0;
+            }
+
             if (myMsDelta(start) < SUBSCRIBE_TIMEOUT) {
                 String data;
                 /* just in case something from GS2200 */
@@ -405,6 +429,7 @@ int right_count = 0;
 int error_count = 0;
 
 MyPacket main_to_bluetooth_packet;
+MyPacket main_to_mqtt_publish_packet;
 int ret;
 
 void publish_mqtt_counts() {
@@ -423,7 +448,17 @@ void publish_mqtt_counts() {
     right_count = 0;
     error_count = 0;
     MPLog("Publishing: %s\n", payload.c_str());
-    // MP.Send(MAIN_TO_MQTT_PUBLISH, &payload, MQTT_PUBLISH_CORE);
+    // MQTTコアに送信
+    if (main_to_mqtt_publish_packet.status == 0) {
+        snprintf(main_to_mqtt_publish_packet.message, MSGLEN, "%s",
+                 payload.c_str());
+        ret = MP.Send(MAIN_TO_MQTT_PUBLISH, &main_to_mqtt_publish_packet,
+                      MQTT_SUBSCRIBE_CORE);
+        if (ret < 0) {
+            printf("MP.Send error = %d\n", ret);
+        }
+        main_to_mqtt_publish_packet.status = 1;
+    }
 }
 
 void initLED() {
