@@ -18,6 +18,6 @@ sequenceDiagram
     Main ->> Main: カウントの初期化
     Main ->> Bt: 表示データ送信
     Bt ->> Bt: Bluetooth出力
-    Main ->> Mqtt: パブリッシュデータ送信
+    Main ->> Mqtt: カウントデータ送信
     Mqtt ->> Mqtt: MQTTパブリッシュ
 ```
