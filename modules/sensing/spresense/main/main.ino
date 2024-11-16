@@ -14,8 +14,6 @@
 
 #define MSGLEN 512
 
-uint32_t myMsDelta(uint32_t start);
-
 enum class SensorResult {
     RightDetected = 1,  // 右判定
     LeftDetected = 0,   // 左判定
@@ -26,6 +24,13 @@ struct MyPacket {
     volatile int status; /* 0:ready, 1:busy */
     char message[MSGLEN];
 };
+
+void send_multicore_packet(int msgid,
+                           MyPacket* packet,
+                           const char* message,
+                           int core);
+
+uint32_t myMsDelta(uint32_t start);
 
 #if (SUBCORE == BLUETOOTH_CORE)
 // SubCore1 ビルド
@@ -163,9 +168,7 @@ void loop() {
                 MPLog("Received data: %s\n", main_to_mqtt_packet->message);
                 publish_message(main_to_mqtt_packet->message);
                 main_to_mqtt_packet->status = 0;
-            }
-
-            if (myMsDelta(start) < SUBSCRIBE_TIMEOUT) {
+            } else if (myMsDelta(start) < SUBSCRIBE_TIMEOUT) {
                 String data;
                 /* just in case something from GS2200 */
                 while (gs2200.available()) {
@@ -308,15 +311,8 @@ void publish_mqtt_counts() {
     MPLog("Publishing: %s\n", mqtt_publish_str.c_str());
     // MQTTコアに送信
 
-    if (main_to_mqtt_packet.status == 0) {
-        main_to_mqtt_packet.status = 1;
-        snprintf(main_to_mqtt_packet.message, MSGLEN, "%s",
-                 mqtt_publish_str.c_str());
-        ret = MP.Send(MAIN_TO_MQTT, &main_to_mqtt_packet, MQTT_CORE);
-        if (ret < 0) {
-            printf("MP.Send error = %d\n", ret);
-        }
-    }
+    send_multicore_packet(MAIN_TO_MQTT, &main_to_mqtt_packet,
+                          mqtt_publish_str.c_str(), MQTT_CORE);
 }
 
 void initLED() {
@@ -343,38 +339,33 @@ void loop() {
         MPLog("Received data: %d\n", static_cast<int>(lr_result));
         lr_result = static_cast<SensorResult>(lr_result);
 
-        main_to_bluetooth_packet.status = 1;
+        String bluetooth_message;
 #if LR_INVERSION
         if (lr_result == SensorResult::LeftDetected) {
             right_count++;
-            snprintf(main_to_bluetooth_packet.message, MSGLEN, "left_count");
+            bluetooth_message = "right_count";
         } else if (lr_result == SensorResult::RightDetected) {
             left_count++;
-            snprintf(main_to_bluetooth_packet.message, MSGLEN, "right_count");
+            bluetooth_message = "left_count";
         } else {
             error_count++;
-            snprintf(main_to_bluetooth_packet.message, MSGLEN, "count_error");
+            bluetooth_message = "error_count";
         }
 #else
         if (lr_result == SensorResult::RightDetected) {
             right_count++;
-            snprintf(main_to_bluetooth_packet.message, MSGLEN, "left_count");
+            bluetooth_message = "right_count";
         } else if (lr_result == SensorResult::LeftDetected) {
             left_count++;
-            snprintf(main_to_bluetooth_packet.message, MSGLEN, "right_count");
+            bluetooth_message = "left_count";
         } else {
             error_count++;
-            snprintf(main_to_bluetooth_packet.message, MSGLEN, "count_error");
+            bluetooth_message = "error_count";
         }
 #endif
 
-        ret = MP.Send(MAIN_TO_BLUETOOTH, &main_to_bluetooth_packet,
-                      BLUETOOTH_CORE);
-        if (ret < 0) {
-            printf("MP.Send error = %d\n", ret);
-        }
-        main_to_bluetooth_packet.status = 0;
-        MPLog("Sent data: %s\n", main_to_bluetooth_packet.message);
+        send_multicore_packet(MAIN_TO_BLUETOOTH, &main_to_bluetooth_packet,
+                              bluetooth_message.c_str(), BLUETOOTH_CORE);
     }
 
     MyPacket* mqtt_to_main_packet;
@@ -407,16 +398,11 @@ void loop() {
 
             current_question_id = id;
 
-            if (main_to_bluetooth_packet.status == 0) {
-                main_to_bluetooth_packet.status = 1;
-                snprintf(main_to_bluetooth_packet.message, MSGLEN, "%s,%s",
-                         optionA, optionB);
-                ret = MP.Send(MAIN_TO_BLUETOOTH, &main_to_bluetooth_packet,
-                              BLUETOOTH_CORE);
-                if (ret < 0) {
-                    printf("MP.Send error = %d\n", ret);
-                }
-            }
+            publish_mqtt_counts();
+
+            String bluetooth_message = String(optionA) + "," + String(optionB);
+            send_multicore_packet(MAIN_TO_BLUETOOTH, &main_to_bluetooth_packet,
+                                  bluetooth_message.c_str(), BLUETOOTH_CORE);
         }
         mqtt_to_main_packet->status = 0;
     }
@@ -428,6 +414,22 @@ void loop() {
 }
 
 #endif
+
+void send_multicore_packet(int msgid,
+                           MyPacket* packet,
+                           const char* message,
+                           int core) {
+    int ret;
+    if (packet->status == 0) {
+        packet->status = 1;
+        strncpy(packet->message, message, MSGLEN);
+        ret = MP.Send(msgid, packet, core);
+        if (ret < 0) {
+            MPLog("MP.Send error = %d\n", ret);
+        }
+        MPLog("Sent data: %s\n", packet->message);
+    }
+}
 
 uint32_t myMsDelta(uint32_t start) {
     uint32_t now = millis();
