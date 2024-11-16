@@ -65,15 +65,32 @@ void loop() {
 #include "config.h"
 
 #define CONSOLE_BAUDRATE 115200
-// #define SUBSCRIBE_TIMEOUT 60 * 60000  // ms
-#define SUBSCRIBE_TIMEOUT 60000  // ms
-/*-------------------------------------------------------------------------*
- * Globals:
- *-------------------------------------------------------------------------*/
+#define SUBSCRIBE_TIMEOUT 60 * 60000  // ms
+
 TelitWiFi gs2200;
 TWIFI_Params gsparams;
 MqttGs2200 theMqttGs2200(&gs2200);
 MyPacket mqtt_to_main_packet;
+
+char server_cid = 0;
+bool served = false;
+uint16_t len, count = 0;
+MQTTGS2200_Mqtt mqtt;
+int ret;
+
+bool publish_message(const char* message) {
+    strncpy(mqtt.params.topic, MQTT_PUBLISH_TOPIC, sizeof(mqtt.params.topic));
+    strncpy(mqtt.params.message, message, sizeof(mqtt.params.message));
+    mqtt.params.len = strlen(mqtt.params.message);
+    if (true == theMqttGs2200.publish(&mqtt)) {
+        MPLog("Published: %s\n", message);
+        strncpy(mqtt.params.topic, MQTT_SUBSCRIBE_TOPIC,
+                sizeof(mqtt.params.topic));
+        return true;
+    }
+    strncpy(mqtt.params.topic, MQTT_SUBSCRIBE_TOPIC, sizeof(mqtt.params.topic));
+    return false;
+}
 
 // the setup function runs once when you press reset or power the board
 void setup() {
@@ -115,12 +132,6 @@ void setup() {
     digitalWrite(LED0, HIGH);  // turn on LED
 }
 
-char server_cid = 0;
-bool served = false;
-uint16_t len, count = 0;
-MQTTGS2200_Mqtt mqtt;
-int ret;
-
 // the loop function runs over and over again forever
 void loop() {
     MyPacket* main_to_mqtt_packet;
@@ -150,18 +161,7 @@ void loop() {
         while (served) {
             if (MP.Recv(MAIN_TO_MQTT, &main_to_mqtt_packet) == MAIN_TO_MQTT) {
                 MPLog("Received data: %s\n", main_to_mqtt_packet->message);
-
-                strncpy(mqtt.params.topic, MQTT_PUBLISH_TOPIC,
-                        sizeof(mqtt.params.topic));
-                strncpy(mqtt.params.message, main_to_mqtt_packet->message,
-                        sizeof(mqtt.params.message));
-
-                mqtt.params.len = strlen(mqtt.params.message);
-                if (true == theMqttGs2200.publish(&mqtt)) {
-                    MPLog("Published: %s\n", main_to_mqtt_packet->message);
-                }
-                strncpy(mqtt.params.topic, MQTT_SUBSCRIBE_TOPIC,
-                        sizeof(mqtt.params.topic));
+                publish_message(main_to_mqtt_packet->message);
                 main_to_mqtt_packet->status = 0;
             }
 
