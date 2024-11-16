@@ -6,7 +6,7 @@
 #define BLUETOOTH_CORE 1
 #define MQTT_PUBLISH_CORE 2
 #define SENSOR_CORE 3
-#define MQTT_SUBSCRIBE_CORE 4
+#define MQTT_CORE 4
 
 #define SENSOR_TO_MAIN 1
 #define MAIN_TO_BLUETOOTH 2
@@ -114,7 +114,7 @@ void loop() {
     MPLog("[SubCore3] Sent data: %d\n", static_cast<int>(lr_result));
 }
 
-#elif (SUBCORE == MQTT_SUBSCRIBE_CORE)
+#elif (SUBCORE == MQTT_CORE)
 // SubCore4 ビルド
 #include <MqttGs2200.h>
 #include <TelitWiFi.h>
@@ -313,7 +313,7 @@ void publish_mqtt_counts() {
         main_to_mqtt_packet.status = 1;
         snprintf(main_to_mqtt_packet.message, MSGLEN, "%s",
                  mqtt_publish_str.c_str());
-        ret = MP.Send(MAIN_TO_MQTT, &main_to_mqtt_packet, MQTT_SUBSCRIBE_CORE);
+        ret = MP.Send(MAIN_TO_MQTT, &main_to_mqtt_packet, MQTT_CORE);
         if (ret < 0) {
             printf("MP.Send error = %d\n", ret);
         }
@@ -334,7 +334,7 @@ void setup() {
 
     MP.begin(BLUETOOTH_CORE);
     MP.begin(SENSOR_CORE);
-    MP.begin(MQTT_SUBSCRIBE_CORE);
+    MP.begin(MQTT_CORE);
     MP.RecvTimeout(MP_RECV_POLLING);
     Serial.println("MainCore: Started");
 }
@@ -380,7 +380,7 @@ void loop() {
 
     MyPacket* mqtt_to_main_packet;
 
-    if (MP.Recv(MQTT_TO_MAIN, &mqtt_to_main_packet, MQTT_SUBSCRIBE_CORE) ==
+    if (MP.Recv(MQTT_TO_MAIN, &mqtt_to_main_packet, MQTT_CORE) ==
         MQTT_TO_MAIN) {
         MPLog("Received data from MQTT\n");
         // MPLog("%s\n", mqtt_to_main_packet->message);
