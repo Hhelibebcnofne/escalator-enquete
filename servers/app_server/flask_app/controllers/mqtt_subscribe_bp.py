@@ -8,7 +8,7 @@ mqtt_subscribe_bp = Blueprint("mqtt_subscribe_bp", __name__)
 
 @mqtt.on_connect()
 def handle_connect(client, userdata, flags, rc):
-    mqtt.subscribe("hello/topic")
+    mqtt.subscribe("counts/topic")
 
 
 @mqtt.on_message()
