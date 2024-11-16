@@ -347,21 +347,21 @@ void loop() {
     } else {
         uint64_t start = millis();
         while (served) {
-            // ここにMainからデータを受け取ってMQTT_PUBLISH_TOPIC宛にpublishする処理を書く……？
-
             if (MP.Recv(MAIN_TO_MQTT_PUBLISH, &main_to_mqtt_publish_packet) ==
                 MAIN_TO_MQTT_PUBLISH) {
-                ConsolePrintf("Received data: %s\n",
-                              main_to_mqtt_publish_packet->message);
-                mqtt.params.len = strlen(main_to_mqtt_publish_packet->message);
+                MPLog("Received data: %s\n",
+                      main_to_mqtt_publish_packet->message);
+
                 strncpy(mqtt.params.topic, MQTT_PUBLISH_TOPIC,
                         sizeof(mqtt.params.topic));
                 strncpy(mqtt.params.message,
                         main_to_mqtt_publish_packet->message,
                         sizeof(mqtt.params.message));
+
+                mqtt.params.len = strlen(mqtt.params.message);
                 if (true == theMqttGs2200.publish(&mqtt)) {
-                    ConsolePrintf("Published: %s\n",
-                                  main_to_mqtt_publish_packet->message);
+                    MPLog("Published: %s\n",
+                          main_to_mqtt_publish_packet->message);
                 }
                 strncpy(mqtt.params.topic, MQTT_SUBSCRIBE_TOPIC,
                         sizeof(mqtt.params.topic));
@@ -419,11 +419,12 @@ void loop() {
 #define MQTT_INTERVAL_MS 60000 * 1  // ms
 #define CONSOLE_BAUDRATE 115200
 
-JsonDocument doc;
+JsonDocument mqtt_subscribe_json;
 
 SensorResult lr_result = SensorResult::ErrorDetected;  // 初期値をエラー判定に
 uint64_t start = millis();
 
+int current_question_id = 0;
 int left_count = 0;
 int right_count = 0;
 int error_count = 0;
@@ -433,31 +434,38 @@ MyPacket main_to_mqtt_publish_packet;
 int ret;
 
 void publish_mqtt_counts() {
-    String payload;
+    JsonDocument mqtt_publish_json;
+    String mqtt_publish_str;
+
+    mqtt_publish_json["question_id"] = current_question_id;
 #if LR_INVERSION
-    payload = "Left: " + String(right_count) +
-              ", Right: " + String(left_count) +
-              ", Errors: " + String(error_count);
+    mqtt_publish_json["optionA_count"] = right_count;
+    mqtt_publish_json["optionB_count"] = left_count;
+    mqtt_publish_json["error_count"] = error_count;
+
 #else
-    payload = "Left: " + String(left_count) +
-              ", Right: " + String(right_count) +
-              ", Errors: " + String(error_count);
+    mqtt_publish_json["optionA_count"] = left_count;
+    mqtt_publish_json["optionB_count"] = right_count;
+    mqtt_publish_json["error_count"] = error_count;
+
 #endif
+    serializeJson(mqtt_publish_json, mqtt_publish_str);
     // カウントをリセット
     left_count = 0;
     right_count = 0;
     error_count = 0;
-    MPLog("Publishing: %s\n", payload.c_str());
+    MPLog("Publishing: %s\n", mqtt_publish_str.c_str());
     // MQTTコアに送信
+
     if (main_to_mqtt_publish_packet.status == 0) {
+        main_to_mqtt_publish_packet.status = 1;
         snprintf(main_to_mqtt_publish_packet.message, MSGLEN, "%s",
-                 payload.c_str());
+                 mqtt_publish_str.c_str());
         ret = MP.Send(MAIN_TO_MQTT_PUBLISH, &main_to_mqtt_publish_packet,
                       MQTT_SUBSCRIBE_CORE);
         if (ret < 0) {
             printf("MP.Send error = %d\n", ret);
         }
-        main_to_mqtt_publish_packet.status = 1;
     }
 }
 
@@ -526,20 +534,20 @@ void loop() {
                 MQTT_SUBSCRIBE_CORE) == MQTT_SUBSCRIBE_TO_MAIN) {
         MPLog("Received data from MQTT\n");
         // MPLog("%s\n", mqtt_subscribe_to_main_packet->message);
-        DeserializationError error =
-            deserializeJson(doc, mqtt_subscribe_to_main_packet->message);
+        DeserializationError error = deserializeJson(
+            mqtt_subscribe_json, mqtt_subscribe_to_main_packet->message);
         if (error) {
             MPLog("Failed to parse JSON\n");
             MPLog("%s\n", error.c_str());
         } else {
             MPLog("Success to parse JSON\n");
 
-            const int id = doc["id"];
-            const char* sentence = doc["sentence"];
-            const char* optionA = doc["optionA"];
-            const char* optionB = doc["optionB"];
-            const char* created_at = doc["created_at"];
-            const char* updated_at = doc["updated_at"];
+            const int id = mqtt_subscribe_json["id"];
+            const char* sentence = mqtt_subscribe_json["sentence"];
+            const char* optionA = mqtt_subscribe_json["optionA"];
+            const char* optionB = mqtt_subscribe_json["optionB"];
+            const char* created_at = mqtt_subscribe_json["created_at"];
+            const char* updated_at = mqtt_subscribe_json["updated_at"];
 
             MPLog("Received id: %d\n", id);
             MPLog("Received sentence: %s\n", sentence);
@@ -547,15 +555,13 @@ void loop() {
             MPLog("Received optionB: %s\n", optionB);
             MPLog("Received created_at: %s\n", created_at);
             MPLog("Received updated_at: %s\n", updated_at);
-            if (main_to_bluetooth_packet.status == 0) {
-                /* status -> busy */
-                main_to_bluetooth_packet.status = 1;
 
-                /* Create a message */
+            current_question_id = id;
+
+            if (main_to_bluetooth_packet.status == 0) {
+                main_to_bluetooth_packet.status = 1;
                 snprintf(main_to_bluetooth_packet.message, MSGLEN, "%s,%s",
                          optionA, optionB);
-
-                /* Send to MainCore */
                 ret = MP.Send(MAIN_TO_BLUETOOTH, &main_to_bluetooth_packet,
                               BLUETOOTH_CORE);
                 if (ret < 0) {
