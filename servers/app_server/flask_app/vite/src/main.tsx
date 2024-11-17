@@ -3,6 +3,8 @@ import { createRoot } from "react-dom/client";
 import { createInertiaApp } from "@inertiajs/react";
 import "./index.css";
 import { StrictMode } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+
 document.addEventListener("DOMContentLoaded", () => {
   createInertiaApp({
     resolve: (name) => {
