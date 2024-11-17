@@ -1,4 +1,5 @@
 import React from "react";
+import { Button, Table } from "react-bootstrap";
 import type { Statistics } from "../../utils/types";
 
 interface SensingCountsProps {
@@ -8,9 +9,9 @@ interface SensingCountsProps {
 const SensingCounts: React.FC<SensingCountsProps> = ({ statistics }) => {
   console.log(statistics);
   return (
-    <div>
+    <div className="container">
       <h1>Sensing Counts</h1>
-      <table>
+      <Table striped bordered hover>
         <thead>
           <tr>
             <th>Sentence</th>
@@ -33,7 +34,10 @@ const SensingCounts: React.FC<SensingCountsProps> = ({ statistics }) => {
             </tr>
           ))}
         </tbody>
-      </table>
+      </Table>
+      <Button variant="secondary" className="m-2" href="/">
+        Back
+      </Button>
     </div>
   );
 };

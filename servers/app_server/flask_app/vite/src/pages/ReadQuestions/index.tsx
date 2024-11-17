@@ -1,6 +1,7 @@
 import { FC } from "react";
 import { Questions } from "../../utils/types";
 import { getCsrfToken } from "../../utils/csrf";
+import { Button, Table } from "react-bootstrap";
 
 interface ReadQuestionsProps {
   questions: Questions;
@@ -33,9 +34,9 @@ const ReadQuestions: FC<ReadQuestionsProps> = ({ questions }) => {
     });
   };
   return (
-    <div>
+    <div className="container">
       <h1>Read Questions</h1>
-      <table>
+      <Table striped bordered hover>
         <thead>
           <tr>
             <th>Id</th>
@@ -54,27 +55,33 @@ const ReadQuestions: FC<ReadQuestionsProps> = ({ questions }) => {
               <td>{question.optionB}</td>
               <td>
                 <div>
-                  <a
+                  <Button
+                    variant="secondary"
+                    className="m-1"
                     onClick={() => handlePublishQuestion(question.id)}
-                    style={{ cursor: "pointer" }}
                   >
-                    Publish{" "}
-                  </a>
+                    Publish
+                  </Button>
 
-                  <a href={`/questions/edit/${question.id}`}>Update </a>
-                  <a
+                  <Button
+                    variant="secondary"
+                    className="m-1"
                     onClick={() => handleDeleteQuestion(question.id)}
-                    style={{ cursor: "pointer" }}
                   >
                     Delete
-                  </a>
+                  </Button>
                 </div>
               </td>
             </tr>
           ))}
         </tbody>
-      </table>
-      <a href="/questions/create">Create Question</a>
+      </Table>
+      <Button variant="secondary" className="m-2" href="/">
+        Back
+      </Button>
+      <Button variant="secondary" className="m-2" href="/questions/create">
+        Create Question
+      </Button>
     </div>
   );
 };
