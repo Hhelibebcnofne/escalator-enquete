@@ -11,10 +11,10 @@ sequenceDiagram
         loop
             Sensor ->> Sensor: データ取得
             Sensor ->> Sensor: 左右判定
-            opt データ検出
-                Sensor -) Main: 結果送信
-                Main ->> Main: カウント処理
-                Main -) Bt: カウントデータ送信
+            opt 人物通過検出
+                Sensor -) Main: 左右判定結果送信
+                Main ->> Main: カウントアップ処理
+                Main -) Bt: 左右判定結果送信
                 Bt ->> Bt: Bluetooth出力
                 Note right of Bt:アンケート結果画面更新
             end
@@ -24,11 +24,11 @@ sequenceDiagram
         loop
             Mqtt ->> Mqtt: MQTTサブスクライブ
             opt 受信データあり
-                Mqtt -) Main: 表示データ送信
-                Main -) Mqtt: 現状のカウントデータ送信
+                Mqtt -) Main: 質問文データ送信
+                Main -) Mqtt: カウントデータ送信
                 Mqtt ->> Mqtt: MQTTパブリッシュ
                 Main ->> Main: カウントの初期化
-                Main -) Bt: 表示データ送信
+                Main -) Bt: 質問文データ送信
                 Bt ->> Bt: Bluetooth出力
                 Note right of Bt:アンケート結果画面更新
             end
