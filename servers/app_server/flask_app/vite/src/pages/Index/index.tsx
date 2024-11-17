@@ -3,7 +3,7 @@ import { Button } from "react-bootstrap";
 
 function App() {
   return (
-    <>
+    <div className="container">
       <h1>Escalator Enquete</h1>
       <Button variant="secondary" className="m-2" href="/questions">
         Questions
@@ -11,7 +11,7 @@ function App() {
       <Button variant="secondary" className="m-2" href="/sensing_counts">
         Sensing Counts
       </Button>
-    </>
+    </div>
   );
 }
 
