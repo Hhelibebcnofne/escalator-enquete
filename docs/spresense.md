@@ -10,8 +10,8 @@ sequenceDiagram
     par センシング処理
         loop
             Sensor ->> Sensor: データ取得
-            Sensor ->> Sensor: 左右判定
             opt 人物通過検出
+                Sensor ->> Sensor: 左右判定
                 Sensor -) Main: 左右判定結果送信
                 Main ->> Main: カウントアップ処理
                 Main -) Bt: 左右判定結果送信
