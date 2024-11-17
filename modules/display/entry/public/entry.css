@@ -12,20 +12,20 @@ body {
     text-align: center;
 }
 
-h1 {
+#question-sentence {
     font-size: 3em;
     margin-bottom: 30px;
     color: #333;
 }
 
-.button-container {/*たぶん、これは行間の整理*/
+.options-container {/*たぶん、これは行間の整理*/
     display: flex;
     justify-content: space-around;
     gap: 30px; /* 回答の間にスペースを空ける */
     margin-top: 20px;
 }
 
-.button {
+.options {
     padding: 20px 40px;
     font-size: 2em;
     color: #fff;
@@ -39,27 +39,19 @@ h1 {
     line-height: 1; /* 文字とアイコンの高さを揃える */
 }
 
-.button:hover {
+.options:hover {
     transform: scale(1.1);
 }
 
-.dog {
+#optionA {
     background-color: #ff6363;
-}
-
-.cat {
-    background-color: #00b1a9;
-}
-
-.dog::before {
-    content: "🐶";
-    font-size: 1.5em;
+    font-size: 4rem;
     margin-right: 10px;
 }
 
-.cat::before {
-    content: "🐱";
-    font-size: 1.5em;
+#optionB {
+    background-color: #00b1a9;
+    font-size: 4rem;
     margin-right: 10px;
 }
 
