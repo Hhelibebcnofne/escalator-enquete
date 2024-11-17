@@ -34,7 +34,7 @@ const ReadQuestions: FC<ReadQuestionsProps> = ({ questions }) => {
     });
   };
   return (
-    <div>
+    <div className="container">
       <h1>Read Questions</h1>
       <Table striped bordered hover>
         <thead>
