@@ -45,10 +45,12 @@ def create_app():
     )
     from flask_app.controllers.question_bp import question_bp
     from flask_app.controllers.user_bp import user_bp
+    from flask_app.controllers.sensing_count_bp import sensing_count_bp
 
     app.register_blueprint(index_bp)
     app.register_blueprint(mqtt_subscribe_bp)
     app.register_blueprint(question_bp)
     app.register_blueprint(user_bp)
+    app.register_blueprint(sensing_count_bp)
 
     return app

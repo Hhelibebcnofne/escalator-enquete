@@ -13,3 +13,16 @@ export type Question = {
 };
 
 export type Questions = Question[];
+
+export type CountWithNames = {
+  sentence: string;
+  optionA: string;
+  optionB: string;
+  optionA_count: number;
+  optionB_count: number;
+  error_count: number;
+};
+
+export type Statistics = {
+  [id: number]: CountWithNames;
+};
