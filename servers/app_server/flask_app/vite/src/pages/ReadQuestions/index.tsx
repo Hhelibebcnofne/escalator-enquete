@@ -56,6 +56,7 @@ const ReadQuestions: FC<ReadQuestionsProps> = ({ questions }) => {
               <td>
                 <div>
                   <Button
+                    variant="secondary"
                     className="m-1"
                     onClick={() => handlePublishQuestion(question.id)}
                   >
@@ -63,12 +64,7 @@ const ReadQuestions: FC<ReadQuestionsProps> = ({ questions }) => {
                   </Button>
 
                   <Button
-                    className="m-1"
-                    href={`/questions/edit/${question.id}`}
-                  >
-                    Update
-                  </Button>
-                  <Button
+                    variant="secondary"
                     className="m-1"
                     onClick={() => handleDeleteQuestion(question.id)}
                   >
@@ -80,7 +76,12 @@ const ReadQuestions: FC<ReadQuestionsProps> = ({ questions }) => {
           ))}
         </tbody>
       </Table>
-      <Button href="/questions/create">Create Question</Button>
+      <Button variant="secondary" className="m-2" href="/">
+        Back
+      </Button>
+      <Button variant="secondary" className="m-2" href="/questions/create">
+        Create Question
+      </Button>
     </div>
   );
 };

@@ -80,10 +80,12 @@ const Update: FC<UpdateQuestionsProps> = ({ question }) => {
           />
         </Form.Group>
 
-        <Button href="/questions" className="me-2">
+        <Button variant="secondary" href="/questions" className="me-2">
           Back
         </Button>
-        <Button type="submit">Update Question</Button>
+        <Button variant="secondary" type="submit">
+          Update Question
+        </Button>
       </Form>
     </div>
   );

@@ -76,10 +76,12 @@ const CreateQuestion: FC = () => {
           />
         </Form.Group>
 
-        <Button href="/questions" className="me-2">
+        <Button variant="secondary" href="/questions" className="me-2">
           Back
         </Button>
-        <Button type="submit">Create Question</Button>
+        <Button variant="secondary" type="submit">
+          Create Question
+        </Button>
       </Form>
     </div>
   );

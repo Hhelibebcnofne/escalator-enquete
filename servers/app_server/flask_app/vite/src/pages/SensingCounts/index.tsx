@@ -1,5 +1,5 @@
 import React from "react";
-import { Table } from "react-bootstrap";
+import { Button, Table } from "react-bootstrap";
 import type { Statistics } from "../../utils/types";
 
 interface SensingCountsProps {
@@ -35,6 +35,9 @@ const SensingCounts: React.FC<SensingCountsProps> = ({ statistics }) => {
           ))}
         </tbody>
       </Table>
+      <Button variant="secondary" className="m-2" href="/">
+        Back
+      </Button>
     </div>
   );
 };
