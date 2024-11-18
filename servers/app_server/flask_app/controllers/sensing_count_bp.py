@@ -30,9 +30,9 @@ def sensing_count():
             "sentence": question.sentence,
             "optionA": question.optionA,
             "optionB": question.optionB,
-            "optionA_count": sensing_counts[question.id - 1].optionA_count,
-            "optionB_count": sensing_counts[question.id - 1].optionB_count,
-            "error_count": sensing_counts[question.id - 1].error_count,
+            "optionA_count": sensing_counts[question.id].optionA_count,
+            "optionB_count": sensing_counts[question.id].optionB_count,
+            "error_count": sensing_counts[question.id].error_count,
         }
         for question in questions
     }
