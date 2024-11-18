@@ -396,9 +396,9 @@ void loop() {
             MPLog("Received created_at: %s\n", created_at);
             MPLog("Received updated_at: %s\n", updated_at);
 
-            current_question_id = id;
-
             publish_mqtt_counts();
+
+            current_question_id = id;
 
             String bluetooth_message = String(optionA) + "," + String(optionB);
             send_multicore_packet(MAIN_TO_BLUETOOTH, &main_to_bluetooth_packet,
