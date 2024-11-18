@@ -59,9 +59,9 @@ function count_up(reception_text) {
   right_answer_ratio = right_answer_ratio.toString();
 
   document.getElementById("right-counter").textContent = right_answer_ratio + "%";
-  document.querySelector(".right-answer-ratio-bar-inner").style.width = right_answer_ratio + "%";
+  document.querySelector(".right-answer-ratio-bar-inner").style.width = left_answer_ratio + "%";
   document.getElementById("left-counter").textContent = left_answer_ratio + "%";
-  document.querySelector(".left-answer-ratio-bar-inner2").style.width = left_answer_ratio + "100%";
+  document.querySelector(".left-answer-ratio-bar-inner2").style.width = right_answer_ratio + "100%";
   document.getElementById("total-person-count").textContent = total_person_count;
 
 }
@@ -70,13 +70,9 @@ const sleep = (time) => new Promise((r) => setTimeout(r, time));//timeはミリ�
 async function animation_for_bar(reception_text) {
   let element_name;
   let element_nam;
-  if (reception_text === "right_count") {
-    element_name = "right";
-    element_nam = "left";
-  } else {
-    element_name = "right";
-    element_nam = "left";
-  }
+  element_name = "right";
+  element_nam = "left";
+
   document.querySelector(`.${element_nam}-answer-bar`).classList.add("zoom-in");
   document.querySelector(`.${element_name}-answer-bar`).classList.add("zoom-in");
   await sleep(2000);
@@ -137,16 +133,16 @@ function read(event) {
 }
 
 // サンプル動作用
-let c = 0
-setInterval(() => {
-  if (c % 2 == 0) {
-    count_up("left_count");//左
-  } else {
-    count_up("right_count");//右
-  }
+// let c = 0
+// setInterval(() => {
+//   if (c % 2 == 0) {
+//     count_up("left_count");//左
+//   } else {
+//     count_up("right_count");//右
+//   }
 
-  if ((c + 1) % 5 == 0) {
-    count_up("sample1,sample2");
-  }
-  c += 1
-}, 3000);
+//   if ((c + 1) % 5 == 0) {
+//     count_up("sample1,sample2");
+//   }
+//   c += 1
+// }, 3000);
