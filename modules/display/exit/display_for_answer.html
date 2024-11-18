@@ -12,17 +12,11 @@
     <button id="bluetooth-connect-button">Connect</button>
     <div class="container">
         <h2>現在までの投票結果</h2>
-        <!-- <div class="left"> -->
-        <!-- <h1>🍚</h1> -->
-        <!--</div>左に配置-->
-        <!-- <div class="light"> -->
-        <!-- <h1>🍞</h1> -->
-        <!--</div>右に配置-->
         <div class="results-container fadehidarikara"><!--長さ制御-->
             <div class="right-answer-bar"><!--位置制御--><!--回答.jsにて拡大・縮小のクラスを追加-->
                 <p>
                 <div class="font">
-                    <div id="right-answer-description"></div>
+                    <div id="left-answer-description"></div>
                 </div>
                 <div class="label"></div>
                 </p>
@@ -30,7 +24,7 @@
                     <div class="bar-inner right-answer-ratio-bar-inner"></div><!-- ここに動的に幅が反映される -->
                 </div>
                 <div class="font">
-                    <p id="right-answer-ratio"></p> <!-- ここに数値が挿入される -->
+                    <p id="right-answer-description"></p> <!-- ここに数値が挿入される -->
                 </div>
             </div>
         </div>
@@ -38,13 +32,13 @@
         <div class="results-container fademigikara">
             <div class="left-answer-bar"><!--回答.jsにて拡大・縮小のクラスを追加-->
                 <div class="font2">
-                    <p><span id="left-answer-description"></span>
+                    <p><span id="left-counter"></span>
                 </div>
                 <div class="label"></div>
                 </p>
                 <div class="left-answer-ratio-bar-inner2"></div><!-- ここに動的に幅が反映される -->
                 <div class="font2">
-                    <p id="left-answer-ratio"></p> <!-- ここに数値が挿入される -->
+                    <p id="right-counter"></p> <!-- ここに数値が挿入される -->
                 </div>
             </div><!--ここにjsの動的処理が入る-->
         </div>

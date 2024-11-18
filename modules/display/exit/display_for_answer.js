@@ -1,7 +1,7 @@
-let right_answer_description = "🐶 犬";
-let left_answer_description = "🐱 猫";
-let right_counter = 0;
+let left_answer_description = "🐶 犬";
+let right_answer_description = "🐱 猫";
 let left_counter = 0;
+let right_counter = 0;
 let total_person_count = 0;
 
 const serviceUUID = 0xFFE0;
@@ -27,16 +27,16 @@ function count_up(reception_text) {
     return;
   } else if ((reception_text.split(",").length) == 2) {
     const questions = reception_text.split(",")
+    document.getElementById("left-answer-description").textContent = questions[0];
     document.getElementById("right-answer-description").textContent = questions[1];
-    document.getElementById("right-answer-ratio").textContent = questions[0];
 
     right_counter = 0;
     left_counter = 0;
     total_person_count = 0;
 
     // 表示の更新
-    document.getElementById("left-answer-description").textContent = "0%";
-    document.getElementById("left-answer-ratio").textContent = "0%";
+    document.getElementById("right-counter").textContent = "0%";
+    document.getElementById("left-counter").textContent = "0%";
     document.querySelector(".right-answer-ratio-bar-inner").style.width = "0%";
     document.querySelector(".left-answer-ratio-bar-inner2").style.width = "100%";
     document.getElementById("total-person-count").textContent = total_person_count;
@@ -51,14 +51,16 @@ function count_up(reception_text) {
   // パーセンテージとグラフを再計算して表示更新
   animation_for_bar(reception_text);
   total_person_count = right_counter + left_counter;
-  let right_answer_ratio = total_person_count > 0 ? Math.floor((right_counter / total_person_count) * 100) : 0;
-  let left_answer_ratio = 100 - right_answer_ratio;
-  right_answer_ratio = right_answer_ratio.toString();
-  left_answer_ratio = left_answer_ratio.toString();
 
-  document.getElementById("left-answer-description").textContent = right_answer_ratio + "%";
+  let left_answer_ratio = total_person_count > 0 ? Math.floor((left_counter / total_person_count) * 100) : 0;
+  let right_answer_ratio = 100 - left_answer_ratio;
+
+  left_answer_ratio = left_answer_ratio.toString();
+  right_answer_ratio = right_answer_ratio.toString();
+
+  document.getElementById("right-counter").textContent = right_answer_ratio + "%";
   document.querySelector(".right-answer-ratio-bar-inner").style.width = right_answer_ratio + "%";
-  document.getElementById("left-answer-ratio").textContent = left_answer_ratio + "%";
+  document.getElementById("left-counter").textContent = left_answer_ratio + "%";
   document.querySelector(".left-answer-ratio-bar-inner2").style.width = left_answer_ratio + "100%";
   document.getElementById("total-person-count").textContent = total_person_count;
 
@@ -84,11 +86,11 @@ async function animation_for_bar(reception_text) {
 
 window.onload = function () {
   // 初期値をHTMLに挿入
-  document.getElementById("left-answer-description").textContent = right_counter + "%";
-  document.getElementById("left-answer-ratio").textContent = left_counter + "%";
+  document.getElementById("right-counter").textContent = "0%";
+  document.getElementById("left-counter").textContent = "0%";
   document.getElementById("total-person-count").textContent = 0;
   document.getElementById("right-answer-description").textContent = right_answer_description;
-  document.getElementById("right-answer-ratio").textContent = left_answer_description;
+  document.getElementById("left-answer-description").textContent = left_answer_description;
 
 
   // 初期グラフ幅の設定
@@ -135,16 +137,16 @@ function read(event) {
 }
 
 // サンプル動作用
-// let c = 0
-// setInterval(() => {
-//   if (c % 2 == 0) {
-//     count_up("left_count");//左
-//   } else {
-//     count_up("right_count");//右
-//   }
+let c = 0
+setInterval(() => {
+  if (c % 2 == 0) {
+    count_up("left_count");//左
+  } else {
+    count_up("right_count");//右
+  }
 
-//   if ((c + 1) % 5 == 0) {
-//     count_up("sample1,sample2");
-//   }
-//   c += 1
-// }, 3000);
+  if ((c + 1) % 5 == 0) {
+    count_up("sample1,sample2");
+  }
+  c += 1
+}, 3000);

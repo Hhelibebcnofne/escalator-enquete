@@ -233,27 +233,6 @@ h1 {
     animation: fade-in-hidamigi 1s ease-in-out 2s forwards;
 }
 
-/* 
-@layer layer_b {
-.light{  
-    top: -760px;
-    left: 743px;
-    position: absolute;
-    margin: 20px auto;
-    font-size:  250px;
-    opacity: 0.3;
-}
-
-
-.left {
-    top: -760px;
-    left: -515px;
-    position: absolute;
-    margin: 20px auto;
-    font-size:  250px;
-    opacity: 0.3;
-}
-} */
 
 /* 緑のグラフに特定のクラスを適用して逆方向に */
 .reverse {
