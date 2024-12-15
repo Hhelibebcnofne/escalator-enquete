@@ -23,7 +23,7 @@ const SensingCounts: React.FC<SensingCountsProps> = ({ statistics }) => {
 
   return (
     <div className="container">
-      <h1>Sensing Counts</h1>
+      <h1>これまでの統計結果一覧</h1>
       {Object.values(statistics).map((statistic) => (
         <Bar
           key={statistic.sentence}
