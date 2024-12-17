@@ -1,7 +1,7 @@
-let right_answer_description = "🐶 犬";
-let left_answer_description = "🐱 猫";
-let right_counter = 0;
+let left_answer_description = "🐶 犬";
+let right_answer_description = "🐱 猫";
 let left_counter = 0;
+let right_counter = 0;
 let total_person_count = 0;
 
 const serviceUUID = 0xFFE0;
@@ -27,16 +27,16 @@ function count_up(reception_text) {
     return;
   } else if ((reception_text.split(",").length) == 2) {
     const questions = reception_text.split(",")
+    document.getElementById("left-answer-description").textContent = questions[0];
     document.getElementById("right-answer-description").textContent = questions[1];
-    document.getElementById("right-answer-ratio").textContent = questions[0];
 
     right_counter = 0;
     left_counter = 0;
     total_person_count = 0;
 
     // 表示の更新
-    document.getElementById("left-answer-description").textContent = "0%";
-    document.getElementById("left-answer-ratio").textContent = "0%";
+    document.getElementById("right-counter").textContent = "0%";
+    document.getElementById("left-counter").textContent = "0%";
     document.querySelector(".right-answer-ratio-bar-inner").style.width = "0%";
     document.querySelector(".left-answer-ratio-bar-inner2").style.width = "100%";
     document.getElementById("total-person-count").textContent = total_person_count;
@@ -51,15 +51,17 @@ function count_up(reception_text) {
   // パーセンテージとグラフを再計算して表示更新
   animation_for_bar(reception_text);
   total_person_count = right_counter + left_counter;
-  let right_answer_ratio = total_person_count > 0 ? Math.floor((right_counter / total_person_count) * 100) : 0;
-  let left_answer_ratio = 100 - right_answer_ratio;
-  right_answer_ratio = right_answer_ratio.toString();
-  left_answer_ratio = left_answer_ratio.toString();
 
-  document.getElementById("left-answer-description").textContent = right_answer_ratio + "%";
-  document.querySelector(".right-answer-ratio-bar-inner").style.width = right_answer_ratio + "%";
-  document.getElementById("left-answer-ratio").textContent = left_answer_ratio + "%";
-  document.querySelector(".left-answer-ratio-bar-inner2").style.width = left_answer_ratio + "100%";
+  let left_answer_ratio = total_person_count > 0 ? Math.floor((left_counter / total_person_count) * 100) : 0;
+  let right_answer_ratio = 100 - left_answer_ratio;
+
+  left_answer_ratio = left_answer_ratio.toString();
+  right_answer_ratio = right_answer_ratio.toString();
+
+  document.getElementById("right-counter").textContent = right_answer_ratio + "%";
+  document.querySelector(".right-answer-ratio-bar-inner").style.width = left_answer_ratio + "%";
+  document.getElementById("left-counter").textContent = left_answer_ratio + "%";
+  document.querySelector(".left-answer-ratio-bar-inner2").style.width = right_answer_ratio + "100%";
   document.getElementById("total-person-count").textContent = total_person_count;
 
 }
@@ -68,13 +70,9 @@ const sleep = (time) => new Promise((r) => setTimeout(r, time));//timeはミリ�
 async function animation_for_bar(reception_text) {
   let element_name;
   let element_nam;
-  if (reception_text === "right_count") {
-    element_name = "right";
-    element_nam = "left";
-  } else {
-    element_name = "right";
-    element_nam = "left";
-  }
+  element_name = "right";
+  element_nam = "left";
+
   document.querySelector(`.${element_nam}-answer-bar`).classList.add("zoom-in");
   document.querySelector(`.${element_name}-answer-bar`).classList.add("zoom-in");
   await sleep(2000);
@@ -84,11 +82,11 @@ async function animation_for_bar(reception_text) {
 
 window.onload = function () {
   // 初期値をHTMLに挿入
-  document.getElementById("left-answer-description").textContent = right_counter + "%";
-  document.getElementById("left-answer-ratio").textContent = left_counter + "%";
+  document.getElementById("right-counter").textContent = "0%";
+  document.getElementById("left-counter").textContent = "0%";
   document.getElementById("total-person-count").textContent = 0;
   document.getElementById("right-answer-description").textContent = right_answer_description;
-  document.getElementById("right-answer-ratio").textContent = left_answer_description;
+  document.getElementById("left-answer-description").textContent = left_answer_description;
 
 
   // 初期グラフ幅の設定
